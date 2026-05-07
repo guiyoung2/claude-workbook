@@ -3,14 +3,17 @@ import Link from 'next/link';
 import { useTheme } from 'next-themes';
 import { Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore } from 'react';
 
 // 하이드레이션 불일치 방지용 다크모드 토글
 function ThemeToggle() {
   const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => setMounted(true), []);
+  // 서버: false, 클라이언트 마운트 후: true — useEffect 없이 하이드레이션 분기
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
 
   if (!mounted) return <Button variant="ghost" size="icon" className="opacity-0" aria-hidden />;
 
