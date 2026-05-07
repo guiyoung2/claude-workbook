@@ -82,7 +82,7 @@
 - `components/post-card.tsx`
 - **검증**: `/posts` 목록 → 상세 진입 → MDX 본문 렌더링
 
-### 4단계: 코드 하이라이팅
+### 4단계: ✅ 완료 (2026-05-08) — 코드 하이라이팅
 
 - `npm install rehype-pretty-code shiki`
 - MDX rehypePlugins에 추가, dual theme(`github-light` + `github-dark`)

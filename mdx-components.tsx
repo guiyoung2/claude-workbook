@@ -36,15 +36,27 @@ const components: MDXComponents = {
       {children}
     </Link>
   ),
-  // 인라인 코드
-  code: ({ children }) => (
-    <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold">
-      {children}
-    </code>
-  ),
-  // 코드블록 컨테이너 (step 4에서 rehype-pretty-code로 교체)
-  pre: ({ children }) => (
-    <pre className="my-6 overflow-x-auto rounded-lg border border-border bg-muted p-4 font-mono text-sm leading-relaxed">
+  // 인라인 코드 / rehype-pretty-code 코드블록 code는 data-theme 속성으로 구분
+  code: ({ children, ...props }) => {
+    const isCodeBlock = "data-theme" in props;
+    if (isCodeBlock) {
+      return <code {...props}>{children}</code>;
+    }
+    return (
+      <code
+        className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold"
+        {...props}
+      >
+        {children}
+      </code>
+    );
+  },
+  // 코드블록 컨테이너
+  pre: ({ children, ...props }) => (
+    <pre
+      className="my-6 overflow-x-auto rounded-lg border border-border p-4 font-mono text-sm leading-relaxed"
+      {...props}
+    >
       {children}
     </pre>
   ),
