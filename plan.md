@@ -65,7 +65,7 @@
 - `app/page.tsx`에 임시 Hero 섹션
 - **검증**: `npm run dev` → 헤더 + 다크모드 토글 + Pretendard 적용 확인
 
-### 2단계: MDX 파이프라인 + 컨텐츠 로더
+### 2단계: ✅ 완료 (2026-05-08) — MDX 파이프라인 + 컨텐츠 로더
 
 - `npm install @next/mdx @mdx-js/loader @mdx-js/react @types/mdx gray-matter`
 - `next.config.ts`에 MDX plugin 추가 (`pageExtensions` 확장)
