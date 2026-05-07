@@ -89,7 +89,7 @@
 - `mdx-components.tsx`의 `pre`, `code` 스타일 다듬기
 - **검증**: 라이트/다크 모두 코드블록 정상 표시
 
-### 5단계: TOC (목차) 자동 생성
+### 5단계: ✅ 완료 (2026-05-08) — TOC (목차) 자동 생성
 
 - `npm install rehype-slug rehype-autolink-headings`
 - 헤딩에 id 부여
