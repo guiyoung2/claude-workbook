@@ -13,3 +13,4 @@
 - 2026-05-08 · 3단계 완료: shadcn card 추가, PostCard 컴포넌트, app/posts/page.tsx(글 목록), app/posts/[slug]/page.tsx(MDX 동적 import + generateStaticParams + generateMetadata) — gray-matter Date 객체 → 문자열 변환 버그 수정
 - 2026-05-08 · 4단계 완료: rehype-pretty-code + shiki 설치, dual theme(github-light/dark), globals.css에 shiki CSS 변수 추가, mdx-components.tsx code/pre 스타일 정리 — Turbopack 호환 위해 플러그인을 함수가 아닌 문자열 방식으로 지정
 - 2026-05-08 · 5단계 완료: rehype-slug + rehype-autolink-headings + github-slugger 설치, lib/toc.ts(extractTocItems), components/toc.tsx(IntersectionObserver 스크롤 동기화), 상세 페이지 본문+TOC 2단 레이아웃(xl 이상)
+- 2026-05-08 · 6단계 완료: 랜딩 Hero 카피 2줄로 보강, 최근 글 섹션(최대 5개 PostCard 그리드) + 전체 글 보기 outline 버튼 추가
