@@ -74,7 +74,7 @@
 - `lib/posts.ts`: `getAllPosts()`, `getPostBySlug()` (gray-matter)
 - **검증**: 파일 메타데이터 출력 확인
 
-### 3단계: 글 목록 + 상세 페이지
+### 3단계: ✅ 완료 (2026-05-08) — 글 목록 + 상세 페이지
 
 - `npx shadcn@latest add card button`
 - `app/posts/page.tsx`: PostCard 리스트 (`order` 우선, 동률은 date 내림차순)

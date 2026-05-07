@@ -32,7 +32,9 @@ export function getAllPosts(): PostMeta[] {
         slug,
         title: data.title as string,
         description: data.description as string,
-        date: data.date as string,
+        date: data.date instanceof Date
+          ? data.date.toISOString().split("T")[0]
+          : String(data.date),
         order: (data.order as number) ?? 0,
       };
     })
@@ -52,7 +54,9 @@ export function getPostBySlug(slug: string): Post {
     slug,
     title: data.title as string,
     description: data.description as string,
-    date: data.date as string,
+    date: data.date instanceof Date
+      ? data.date.toISOString().split("T")[0]
+      : String(data.date),
     order: (data.order as number) ?? 0,
     content,
   };
