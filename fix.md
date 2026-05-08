@@ -14,3 +14,13 @@
 - 2026-05-08 · 4단계 완료: rehype-pretty-code + shiki 설치, dual theme(github-light/dark), globals.css에 shiki CSS 변수 추가, mdx-components.tsx code/pre 스타일 정리 — Turbopack 호환 위해 플러그인을 함수가 아닌 문자열 방식으로 지정
 - 2026-05-08 · 5단계 완료: rehype-slug + rehype-autolink-headings + github-slugger 설치, lib/toc.ts(extractTocItems), components/toc.tsx(IntersectionObserver 스크롤 동기화), 상세 페이지 본문+TOC 2단 레이아웃(xl 이상)
 - 2026-05-08 · 6단계 완료: 랜딩 Hero 카피 2줄로 보강, 최근 글 섹션(최대 5개 PostCard 그리드) + 전체 글 보기 outline 버튼 추가
+
+## 버그 수정 이력
+
+- 2026-05-08 · 버그 수정: MDX frontmatter가 본문에 렌더링되는 문제
+  - **원인**: `@next/mdx`는 YAML frontmatter를 기본 인식하지 않음. `---` 블록이 CommonMark setext heading(h2)으로 파싱되어 "title: ... description: ... date: ... order: ..." 텍스트가 본문에 출력됨
+  - **수정**: `remark-frontmatter` 설치 → `next.config.ts`에 `remarkPlugins: ["remark-frontmatter"]` 추가
+
+- 2026-05-08 · 버그 수정: 목차·헤딩 앵커 클릭 시 URL만 변경되고 위치 이동이 안 되는 문제
+  - **원인**: `mdx-components.tsx`의 h1~h4 컴포넌트가 `children`만 받고 `{...props}`를 전달하지 않아, `rehype-slug`가 부여하는 `id` 속성이 실제 DOM에 반영되지 않았음
+  - **수정**: h1~h4에 `{...props}` spread 추가, `<a href="#id">` 앵커 링크를 Next.js `<Link>` 대신 native `<a>`로 처리, `globals.css`에 `scroll-behavior: smooth` 추가

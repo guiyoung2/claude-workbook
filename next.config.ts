@@ -8,6 +8,7 @@ const nextConfig: NextConfig = {
 const withMDX = createMDX({
   options: {
     // Turbopack 호환: 플러그인을 문자열로 지정
+    remarkPlugins: ["remark-frontmatter"],
     rehypePlugins: [
       "rehype-slug",
       ["rehype-autolink-headings", { behavior: "wrap" }],
