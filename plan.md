@@ -105,6 +105,19 @@
 - shadcn Button "글 목록 보기" CTA
 - **검증**: 첫 방문자가 사이트 목적 한눈에 이해
 
+### 8단계: ✅ 완료 (2026-05-09) — PostCard 디자인 개선 + 4열 그리드 + Claude 카테고리 일괄 적용
+
+- `lib/posts.ts`의 `PostMeta`에 `category?: string` 추가, frontmatter 매핑
+- `components/post-card.tsx` 재구현:
+  - 상단 그라데이션 액센트 바 (hover 시 진해짐)
+  - 우측 상단 워터마크 인덱스 (order 2자리 0-pad)
+  - `hover:-translate-y-0.5 hover:shadow-lg`로 트렌디한 인터랙션
+  - line-clamp로 4열에서도 카드 높이 균일
+  - footer에 카테고리 배지 슬롯 (값 없으면 미렌더)
+- `app/posts/page.tsx`: `flex flex-col` → `grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4`, 컨테이너 `max-w-3xl` → `max-w-7xl`
+- `content/*.mdx` 10개 전부 frontmatter에 `category: Claude` 추가
+- **검증**: `npm run dev` → `/posts`에서 반응형 그리드, 모든 카드에 Claude 배지·인덱스 번호·호버 효과 정상 동작
+
 ### 7단계 (선택): 노션 API 참조 스크립트
 
 - `scripts/notion-fetch.ts` (사이트 빌드와 분리)

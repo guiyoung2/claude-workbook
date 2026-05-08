@@ -1,0 +1,168 @@
+---
+title: Hooks & 자동화 파이프라인
+description: Hook으로 린트·알림을 자동화하고, 음성 입력·커스텀 MCP·통합 파이프라인으로 Claude Code를 자동화 엔진으로 만드는 방법을 알아봅니다.
+date: 2026-05-08
+order: 12
+category: Claude
+---
+
+## 🪝 Hook이란?
+
+Claude Code의 **자동화 엔진**입니다.
+
+```
+이벤트 발생
+    ↓
+matcher가 조건 검사 (와일드카드 * 또는 특정 패턴)
+    ↓
+조건에 맞으면 지정된 액션 자동 실행
+```
+
+예를 들어:
+
+- 파일 수정(Edit) 후 자동으로 린트 실행
+- 작업 완료 시 알림 소리 재생
+- 도구 호출 전 위험한 명령 차단
+
+---
+
+## 🔧 Hook 만들기
+
+**방법 1 — Claude에게 요청 (추천):**
+
+```
+"파일 수정할 때마다 자동으로 린트 실행하는 Hook 만들어줘"
+```
+
+Claude가 `settings.json`에 자동으로 추가해줍니다.
+
+**방법 2 — settings.json 직접 편집:**
+
+```
+~/.claude/settings.json   ← 개인용 (모든 프로젝트)
+.claude/settings.json     ← 프로젝트용 (팀 공유 가능)
+```
+
+---
+
+## 📝 Hook JSON 구조
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npm run lint --silent"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "terminal-notifier -title 'Claude Code' -message '알림이 있습니다'"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+**JSON 구조 분해:**
+
+| 키 | 역할 |
+|----|------|
+| 최상위 키 (`PostToolUse`) | 이벤트 타입 — 언제 실행할지 |
+| `matcher` | 조건 — `*`는 전부, `"Edit"`은 Edit 도구에만 |
+| `hooks` 배열 | 실행할 Hook 목록 (여러 개 가능) |
+| `command` | 실제 실행할 셸 명령어 |
+
+---
+
+## 📋 이벤트 타입 4종
+
+| 이벤트 | 타이밍 | 활용 예시 |
+|--------|--------|----------|
+| **PreToolUse** | 도구 호출 직전 | 입력값 검증, 위험한 명령 차단 |
+| **PostToolUse** | 도구 실행 직후 | 린트 실행, 포맷팅 적용 |
+| **Notification** | 사용자 응답 대기 시 | 알림 전송, 로깅 |
+| **Stop** | 에이전트 턴 종료 시 | 최종 정리, 보고서 생성 |
+
+> ⚠️ Hook 실행 중 Claude는 멈춰서 기다립니다. **timeout을 꼭 설정**하고, 무거운 작업은 백그라운드(`&`)로 돌리세요.
+
+---
+
+## 🖥️ MCP vs 로컬 Bash 스크립트
+
+간단한 작업이라면 MCP 대신 **로컬 bash 스크립트**가 훨씬 가볍습니다.
+
+```bash
+# scripts/check-db.sh
+#!/bin/bash
+psql -h localhost -U dev -d mydb -c "SELECT count(*) FROM users;"
+```
+
+```
+Claude에게: "check-db.sh 실행해"
+→  MCP 연결 없이 바로 실행
+→  컨텍스트 공간도 절약
+```
+
+간단한 반복 작업이라면 MCP 세팅보다 스크립트 한 줄이 더 효율적입니다.
+
+---
+
+## 🏗️ 커스텀 MCP 서버 빌드
+
+Claude가 작업 중에 **자동으로 호출**해야 하는 도구가 필요하면 MCP 서버를 직접 만들 수 있습니다.
+
+**예시: Plan Review MCP 서버**
+
+Plan Mode에서 계획을 세우면 Gemini API에 보내서 리뷰를 받고 결과를 반환합니다.
+
+```
+"Gemini API를 사용하는 plan-review MCP 서버를 만들어줘.
+ review_plan 도구 하나만 있으면 돼.
+ plan 텍스트를 받아서 Gemini에 리뷰를 요청하고 결과를 반환하게."
+```
+
+Claude가 MCP 서버 코드를 작성하고 `settings.json`에 등록까지 도와줍니다.
+
+---
+
+## 🎤 음성 입력 (/voice)
+
+```
+/voice
+```
+
+Push-to-talk (스페이스바) 방식으로 20개 이상 언어를 지원합니다 (한국어 포함).
+
+키보드로 5분 걸릴 복잡한 요구사항을 말로 1분에 전달할 수 있습니다. 긴 에러 로그 설명이나 복잡한 비즈니스 로직 전달에 특히 유용합니다.
+
+---
+
+## 🚀 통합 데모 — 1차 피드백 한큐에 처리하기
+
+클라이언트 피드백 10개 항목을 이 파이프라인으로 처리하면 **수동 반나절 → 30분**으로 단축됩니다.
+
+| 순서 | 기능 | 역할 |
+|------|------|------|
+| 1 | **음성 입력** | 복잡한 피드백 10개를 30초에 전달 |
+| 2 | **커스텀 MCP** (review_plan) | 경쟁 모델로 플랜 품질 검증 |
+| 3 | **Sub-Agent 병렬 실행** | 프론트/백엔드 동시 작업 |
+| 4 | **번들 스킬** (/batch) | 우선순위 파일들 병렬 수정 |
+| 5 | **로컬 Bash 스크립트** | pytest + typecheck + lint 원커맨드 |
+| 6 | **Hooks** | 작업 완료 자동 알림 |
+| 7 | **코드 리뷰 에이전트** | 전체 변경사항 품질 검증 |
+| 8 | **커스텀 스킬** (client-report) | 클라이언트 보고서 자동 생성 |
+
+각 단계가 이전 포스트에서 배운 개념들을 조합한 것입니다. **음성 입력 → MCP → Sub-Agent → Skills → Bash → Hooks** — 이 모든 것이 하나의 파이프라인으로 연결됩니다.

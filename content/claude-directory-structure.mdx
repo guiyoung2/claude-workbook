@@ -1,0 +1,101 @@
+---
+title: .claude/ 디렉토리 완전 정복
+description: .claude/ 폴더 안에 무엇이 있는지, 각각이 어떤 역할인지 한눈에 파악합니다.
+date: 2026-05-08
+order: 4
+category: Claude
+---
+
+## 🗂️ .claude/ 폴더가 뭔가요?
+
+Claude Code를 쓰다 보면 `.claude/` 폴더가 자꾸 언급됩니다. 이 폴더는 Claude Code의 **두뇌**입니다. 명령어, 자동화 규칙, 재사용 스킬, 커스텀 에이전트가 모두 여기에 담깁니다.
+
+---
+
+## 📂 전체 구조 한눈에 보기
+
+```
+.claude/                    ← 프로젝트 전용 설정 (Git 커밋 가능)
+├── settings.json           ← 권한 설정, Hook 정의
+├── commands/               ← 커스텀 슬래시 명령어
+│   ├── review.md           →  /review 명령어
+│   └── deploy.md           →  /deploy 명령어
+├── skills/                 ← 재사용 가능한 작업 매뉴얼
+│   └── ppt-generator/
+│       └── SKILL.md
+└── agents/                 ← 커스텀 Sub-Agent 정의
+    └── code-reviewer.md
+
+~/.claude/                  ← 내 모든 프로젝트에 적용되는 개인 설정
+├── settings.json           ← 개인 권한·Hook 설정
+├── CLAUDE.md               ← 글로벌 개인 지침 (커밋 안 함)
+├── commands/               ← 개인 전용 명령어
+├── skills/                 ← 개인 전용 스킬
+└── agents/                 ← 개인 전용 에이전트
+```
+
+---
+
+## 🔍 각 구성 요소 역할
+
+### `settings.json` — 권한·자동화 설정
+
+Claude가 어떤 도구를 자유롭게 쓸 수 있는지, Hook을 어떻게 동작시킬지 정의합니다.
+
+```json
+{
+  "permissions": {
+    "allow": ["Bash(npm run *)", "Read", "Edit"],
+    "deny": ["Bash(rm -rf *)"]
+  },
+  "hooks": {
+    "PostToolUse": [...]
+  }
+}
+```
+
+### `commands/` — 커스텀 슬래시 명령어
+
+`.md` 파일을 이 폴더에 넣으면 **파일 이름이 슬래시 명령어**가 됩니다.
+
+```
+commands/review.md    →  /review 로 호출
+commands/deploy.md    →  /deploy 로 호출
+```
+
+탭 자동완성도 지원되고, Claude Code가 구조적으로 인식해서 일반 프롬프트보다 안정적입니다.
+
+### `skills/` — 재사용 가능한 작업 매뉴얼
+
+반복 작업을 `SKILL.md` 파일로 정의해두면 이름으로 호출하거나 자연어로 트리거할 수 있습니다. 한 번 만들면 매번 같은 품질의 결과를 얻을 수 있습니다.
+
+### `agents/` — 커스텀 Sub-Agent
+
+역할이 특화된 Claude 인스턴스를 미리 정의합니다. 코드 리뷰 전용, 문서 작성 전용 에이전트를 만들어두면 필요할 때 불러쓸 수 있습니다.
+
+---
+
+## 📍 프로젝트 vs 개인 설정 — 어디에 넣을까?
+
+| 위치 | 범위 | Git 커밋 | 언제 사용? |
+|------|------|----------|-----------|
+| `.claude/` | 이 프로젝트에서만 | ✅ 팀 공유 가능 | 팀 공통 명령어, 프로젝트 전용 스킬 |
+| `~/.claude/` | 내 모든 프로젝트 | ❌ 개인 전용 | API 키, 개인 스타일, 나만 쓰는 에이전트 |
+
+> 💡 팀 공통 규칙은 `.claude/`에, 개인 설정은 `~/.claude/`에. 이 구분을 지키면 팀 협업이 깔끔해집니다.
+
+---
+
+## 🎯 우선순위
+
+같은 이름의 설정이 여러 곳에 있으면 **Enterprise → Personal → Project** 순서로 적용됩니다.
+
+```
+Enterprise 관리자 설정
+    ↓ 덮어씌움
+~/.claude/ 개인 설정
+    ↓ 덮어씌움
+.claude/ 프로젝트 설정
+```
+
+팀 전체 강제 규칙은 Enterprise, 나만의 스타일은 Personal, 프로젝트 규칙은 Project에 두면 됩니다.

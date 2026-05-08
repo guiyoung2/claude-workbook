@@ -10,6 +10,7 @@ export interface PostMeta {
   description: string;
   date: string;
   order: number;
+  category?: string;
 }
 
 export interface Post extends PostMeta {
@@ -36,6 +37,7 @@ export function getAllPosts(): PostMeta[] {
           ? data.date.toISOString().split("T")[0]
           : String(data.date),
         order: (data.order as number) ?? 0,
+        category: data.category as string | undefined,
       };
     })
     .sort((a, b) => {
@@ -58,6 +60,7 @@ export function getPostBySlug(slug: string): Post {
       ? data.date.toISOString().split("T")[0]
       : String(data.date),
     order: (data.order as number) ?? 0,
+    category: data.category as string | undefined,
     content,
   };
 }
