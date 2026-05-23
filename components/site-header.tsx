@@ -32,17 +32,23 @@ function ThemeToggle() {
 // 사이트 상단 내비게이션 헤더
 export function SiteHeader() {
   return (
-    <header className="border-b">
+    <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-sm">
       <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
         <Link href="/" className="font-bold text-lg">
           Claude Workbook
         </Link>
-        <nav className="flex items-center gap-2">
+        <nav className="flex items-center gap-4">
           <Link
             href="/posts"
             className="text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             글 목록
+          </Link>
+          <Link
+            href="/skills"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            스킬
           </Link>
           <ThemeToggle />
         </nav>
