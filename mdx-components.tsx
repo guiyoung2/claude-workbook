@@ -4,22 +4,34 @@ import Link from "next/link";
 // MDX 요소를 shadcn 디자인 토큰 기반 스타일로 매핑
 const components: MDXComponents = {
   h1: ({ children, ...props }) => (
-    <h1 className="mt-8 mb-4 scroll-m-20 text-4xl font-bold tracking-tight text-foreground first:mt-0" {...props}>
+    <h1
+      className="mt-8 mb-4 scroll-m-20 text-4xl font-bold tracking-tight text-foreground first:mt-0"
+      {...props}
+    >
       {children}
     </h1>
   ),
   h2: ({ children, ...props }) => (
-    <h2 className="mt-10 mb-4 scroll-m-20 border-b border-border pb-2 text-3xl font-semibold tracking-tight text-foreground first:mt-0" {...props}>
+    <h2
+      className="mt-10 mb-4 scroll-m-20 border-b border-border pb-2 text-3xl font-semibold tracking-tight text-foreground first:mt-0"
+      {...props}
+    >
       {children}
     </h2>
   ),
   h3: ({ children, ...props }) => (
-    <h3 className="mt-8 mb-3 scroll-m-20 text-2xl font-semibold tracking-tight text-foreground" {...props}>
+    <h3
+      className="mt-8 mb-3 scroll-m-20 text-2xl font-semibold tracking-tight text-foreground"
+      {...props}
+    >
       {children}
     </h3>
   ),
   h4: ({ children, ...props }) => (
-    <h4 className="mt-6 mb-2 scroll-m-20 text-xl font-semibold tracking-tight text-foreground" {...props}>
+    <h4
+      className="mt-6 mb-2 scroll-m-20 text-xl font-semibold tracking-tight text-foreground"
+      {...props}
+    >
       {children}
     </h4>
   ),
@@ -29,10 +41,15 @@ const components: MDXComponents = {
     </p>
   ),
   a: ({ href, children, ...props }) => {
-    const cls = "font-medium text-foreground underline underline-offset-4 hover:text-muted-foreground transition-colors";
+    const cls =
+      "font-medium text-foreground underline underline-offset-4 hover:text-muted-foreground transition-colors";
     // 앵커 링크(#id)는 native <a>로 처리해야 in-page 스크롤이 정상 동작함
     if (href?.startsWith("#")) {
-      return <a href={href} className={cls} {...props}>{children}</a>;
+      return (
+        <a href={href} className={cls} {...props}>
+          {children}
+        </a>
+      );
     }
     return (
       <Link href={href ?? "#"} className={cls} {...props}>
@@ -48,7 +65,7 @@ const components: MDXComponents = {
     }
     return (
       <code
-        className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold"
+        className="relative rounded  px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold"
         {...props}
       >
         {children}

@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+@plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -132,15 +133,26 @@ html {
     }
 }
 
+/* rehype-pretty-code: 코드 블록 컨테이너 */
+[data-rehype-pretty-code-figure] {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin: 1.25rem 0;
+}
+
 /* rehype-pretty-code dual theme: 라이트/다크 모드 전환 */
-code[data-theme*=' '],
-code[data-theme*=' '] span {
+/* [data-rehype-pretty-code-figure]로 specificity 높여 prose 기본 배경 덮어씌움 */
+[data-rehype-pretty-code-figure] pre[data-theme*=' '],
+[data-rehype-pretty-code-figure] code[data-theme*=' '],
+[data-rehype-pretty-code-figure] code[data-theme*=' '] span {
   color: var(--shiki-light);
   background-color: var(--shiki-light-bg);
 }
 
-.dark code[data-theme*=' '],
-.dark code[data-theme*=' '] span {
+.dark [data-rehype-pretty-code-figure] pre[data-theme*=' '],
+.dark [data-rehype-pretty-code-figure] code[data-theme*=' '],
+.dark [data-rehype-pretty-code-figure] code[data-theme*=' '] span {
   color: var(--shiki-dark);
   background-color: var(--shiki-dark-bg);
 }

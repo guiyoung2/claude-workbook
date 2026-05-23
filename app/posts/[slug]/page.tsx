@@ -56,7 +56,7 @@ export default async function PostPage({
             </h1>
             <p className="text-sm text-muted-foreground">{post.date}</p>
           </header>
-          <article>
+          <article className="prose prose-neutral dark:prose-invert max-w-none">
             <PostContent />
           </article>
         </div>
