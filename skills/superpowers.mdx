@@ -1,0 +1,148 @@
+---
+title: "Superpowers: 코딩 에이전트에게 개발 습관을 주입하는 플러그인"
+name: "Superpowers"
+description: "Superpowers 플러그인의 역할, 설치 방법, 14개 스킬 구조, 기본 워크플로를 정리합니다."
+category: plugin
+github: "https://github.com/obra/superpowers"
+installCmd: "/plugin install superpowers@claude-plugins-official"
+date: 2026-05-24
+---
+
+Superpowers는 Claude Code, Codex, Gemini CLI, Cursor 같은 코딩 에이전트가 바로 코드를 쓰기 전에 설계, 계획, 테스트, 디버깅, 리뷰, 검증을 거치게 만드는 개발 방법론 플러그인입니다.
+
+단순히 "스킬 여러 개를 모아둔 패키지"라기보다, 코딩 에이전트가 일하는 방식을 바꾸는 작업 흐름에 가깝습니다. 원본 저장소인 [obra/superpowers](https://github.com/obra/superpowers)는 Superpowers를 composable skills와 초기 지침으로 구성된 코딩 에이전트용 소프트웨어 개발 방법론으로 설명합니다.
+
+## 왜 필요한가
+
+코딩 에이전트는 빠르게 코드를 작성할 수 있지만, 그만큼 흔한 실수도 빠르게 반복합니다.
+
+- 요구사항이 애매한데 바로 구현한다.
+- 설계 없이 파일을 수정하기 시작한다.
+- 테스트를 나중에 쓰거나 생략한다.
+- 에러 원인을 찾기 전에 추측성 패치를 한다.
+- 검증하지 않고 "완료됐다"고 말한다.
+- 리뷰 피드백을 맹목적으로 받아들이거나 반대로 제대로 확인하지 않는다.
+
+Superpowers는 이런 실수를 줄이기 위해 작업을 작은 단계로 나눕니다. 기능 개발은 브레인스토밍과 계획을 거쳐 실행하고, 버그 수정은 원인 조사와 재현을 거친 뒤 수정합니다. 완료를 말하기 전에는 최신 검증 결과를 확인합니다.
+
+## 설치 방법
+
+### Claude Code
+
+Claude Code에서는 Anthropic 공식 플러그인 마켓플레이스에서 설치할 수 있습니다.
+
+```text
+/plugin install superpowers@claude-plugins-official
+```
+
+공식 마켓플레이스 정보가 오래되었거나 플러그인이 보이지 않는다면 다음 명령으로 marketplace를 갱신하거나 추가합니다.
+
+```text
+/plugin marketplace update claude-plugins-official
+/plugin marketplace add anthropics/claude-plugins-official
+```
+
+Superpowers 원본 marketplace를 직접 추가해서 설치할 수도 있습니다.
+
+```text
+/plugin marketplace add obra/superpowers-marketplace
+/plugin install superpowers@superpowers-marketplace
+```
+
+### Codex
+
+원본 README 기준으로 Codex CLI와 Codex App에서도 Superpowers를 공식 Codex 플러그인 마켓플레이스를 통해 설치할 수 있습니다.
+
+- Codex CLI: `/plugins`에서 `superpowers`를 검색한 뒤 설치합니다.
+- Codex App: 사이드바의 Plugins에서 Coding 카테고리의 `Superpowers`를 설치합니다.
+
+### 다른 도구
+
+Superpowers 원본 README는 Factory Droid, Gemini CLI, OpenCode, Cursor, GitHub Copilot CLI도 지원 대상으로 안내합니다. 도구마다 설치 방식이 다르므로 자세한 명령은 [obra/superpowers Installation 섹션](https://github.com/obra/superpowers#installation)을 확인하는 것이 가장 안전합니다.
+
+## 설치하면 무엇이 달라지나
+
+Superpowers를 설치하면 에이전트는 작업을 시작할 때 관련 스킬을 먼저 찾고, 현재 상황에 맞는 절차를 따르려 합니다.
+
+기능 개발에서는 보통 이런 흐름이 됩니다.
+
+1. `brainstorming`으로 목적, 범위, 성공 기준을 정리한다.
+2. `writing-plans`로 구현 계획을 만든다.
+3. `using-git-worktrees`로 작업 공간을 격리한다.
+4. `subagent-driven-development` 또는 `executing-plans`로 계획을 실행한다.
+5. `test-driven-development`로 테스트 우선 구현을 강제한다.
+6. `requesting-code-review`로 변경사항을 검토한다.
+7. `verification-before-completion`으로 완료 전 검증한다.
+8. `finishing-a-development-branch`로 merge, PR, 보존, 폐기 중 하나를 선택한다.
+
+버그 수정에서는 흐름이 조금 달라집니다.
+
+1. `systematic-debugging`으로 에러 메시지, 재현 절차, 최근 변경, 데이터 흐름을 확인한다.
+2. 원인을 찾은 뒤 `test-driven-development`로 실패 테스트를 만든다.
+3. 최소 수정으로 테스트를 통과시킨다.
+4. `verification-before-completion`으로 실제로 고쳐졌는지 확인한다.
+
+## 14개 스킬 구조
+
+현재 Superpowers 원본과 설치된 v5.1.0 기준으로 확인한 스킬은 14개입니다.
+
+| 구분 | 스킬 | 역할 |
+| --- | --- | --- |
+| 시작과 규칙 | `using-superpowers` | 작업 시작 시 관련 스킬을 먼저 찾고 사용자 지침을 최우선으로 둔다. |
+| 설계와 계획 | `brainstorming` | 애매한 아이디어를 질문, 대안 비교, 설계 승인 흐름으로 명확하게 만든다. |
+| 설계와 계획 | `writing-plans` | 승인된 설계를 파일, 단계, 검증 명령이 포함된 구현 계획으로 바꾼다. |
+| 작업 격리 | `using-git-worktrees` | 기능 작업 전 격리된 워크스페이스를 만들거나 현재 격리 상태를 확인한다. |
+| 실행 | `subagent-driven-development` | 계획의 각 작업을 독립 subagent에게 맡기고 명세 검토와 품질 검토를 반복한다. |
+| 실행 | `executing-plans` | 작성된 계획을 현재 세션 또는 별도 세션에서 순서대로 실행한다. |
+| 실행 | `dispatching-parallel-agents` | 독립적인 문제 여러 개를 병렬 subagent로 나누어 조사한다. |
+| 품질과 디버깅 | `test-driven-development` | 구현 전에 실패하는 테스트를 먼저 만들고 red/green/refactor 흐름을 따른다. |
+| 품질과 디버깅 | `systematic-debugging` | 버그, 테스트 실패, 이상 동작을 추측이 아니라 원인 조사로 해결한다. |
+| 품질과 디버깅 | `verification-before-completion` | 완료, 수정, 통과를 말하기 전에 실제 검증 명령을 실행하고 결과를 읽게 한다. |
+| 리뷰 | `requesting-code-review` | 작업 완료 후 버그, 회귀, 테스트 누락 중심의 코드 리뷰를 요청한다. |
+| 리뷰 | `receiving-code-review` | 받은 리뷰를 맹목적으로 반영하지 않고 기술적으로 검증한 뒤 처리한다. |
+| 마무리 | `finishing-a-development-branch` | 테스트 확인 후 merge, PR, 보존, 폐기 같은 마무리 선택지를 제시한다. |
+| 메타 | `writing-skills` | 새 스킬을 만들거나 수정할 때 문서에도 TDD를 적용한다. |
+
+## 원본 README의 분류
+
+원본 README는 Superpowers 내부 스킬을 다음처럼 분류합니다.
+
+| 분류 | 포함 스킬 |
+| --- | --- |
+| Testing | `test-driven-development` |
+| Debugging | `systematic-debugging`, `verification-before-completion` |
+| Collaboration | `brainstorming`, `writing-plans`, `executing-plans`, `dispatching-parallel-agents`, `requesting-code-review`, `receiving-code-review`, `using-git-worktrees`, `finishing-a-development-branch`, `subagent-driven-development` |
+| Meta | `writing-skills`, `using-superpowers` |
+
+이 분류를 보면 Superpowers가 단순한 코드 생성 보조 도구가 아니라는 점이 잘 드러납니다. 핵심은 코드 작성보다 작업 방식입니다. 특히 브레인스토밍, 구현 계획, worktree, 리뷰, branch 마무리까지 포함한다는 점에서 프로젝트 단위 개발 흐름을 통제하려는 플러그인에 가깝습니다.
+
+## 언제 쓰면 좋은가
+
+Superpowers는 다음 상황에서 특히 유용합니다.
+
+- 요구사항이 애매한 기능을 만들 때
+- 한 번에 여러 파일을 바꾸는 작업을 시작할 때
+- 테스트와 검증을 빼먹기 쉬운 프로젝트에서 작업할 때
+- 버그 원인을 추측하지 않고 추적해야 할 때
+- AI가 너무 빨리 구현으로 뛰어드는 것을 막고 싶을 때
+- 코드 리뷰와 브랜치 마무리까지 일관된 흐름으로 관리하고 싶을 때
+
+반대로 아주 작은 텍스트 수정이나 단순 조회처럼 설계와 검증 비용이 더 큰 작업에는 과할 수 있습니다. 그래도 코드 변경, 기능 추가, 버그 수정처럼 실패 비용이 있는 작업에서는 Superpowers가 꽤 좋은 안전장치가 됩니다.
+
+## 주의할 점
+
+Superpowers는 에이전트에게 절차를 강하게 요구합니다. 그래서 작업이 느려 보일 수 있습니다. 하지만 그 느림은 대체로 질문, 계획, 검증에 쓰이는 시간입니다. 요구사항이 흔들리거나 테스트 없이 빠르게 수정하다가 되돌아가는 비용을 생각하면, 큰 작업에서는 오히려 시간을 아끼는 쪽에 가깝습니다.
+
+또 하나 중요한 점은 사용자 지침이 최우선이라는 것입니다. Superpowers의 `using-superpowers`는 스킬보다 사용자의 명시 지침을 우선하도록 설명합니다. 프로젝트의 `AGENTS.md`, `CLAUDE.md`, 직접 지시가 있다면 그 지침과 함께 해석해야 합니다.
+
+## 한 문장으로 정리
+
+Superpowers는 코딩 에이전트에게 "생각하고, 계획하고, 테스트하고, 검증한 뒤 끝내라"는 개발 습관을 주입하는 플러그인입니다.
+
+## 참고 링크
+
+- [obra/superpowers 원본 저장소](https://github.com/obra/superpowers)
+- [Superpowers skills 디렉터리](https://github.com/obra/superpowers/tree/main/skills)
+- [Anthropic 공식 Claude Plugins Directory](https://github.com/anthropics/claude-plugins-official)
+- [Claude Code 플러그인 설치 문서](https://code.claude.com/docs/en/discover-plugins)
+- [Claude Code 플러그인 구조 문서](https://code.claude.com/docs/en/plugins)
