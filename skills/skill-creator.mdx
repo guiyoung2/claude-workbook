@@ -1,0 +1,119 @@
+---
+title: "skill-creator: Claude에게 스킬을 만드는 법을 가르치는 메타 스킬"
+name: "skill-creator"
+description: "스킬을 작성하고 테스트하고 비교하고 사람 피드백으로 반복 개선하게 만드는 스킬 제작용 메타 스킬"
+category: skill
+github: "https://github.com/anthropics/skills/tree/main/skills/skill-creator"
+installCmd: "/plugin install example-skills@anthropic-agent-skills"
+date: 2026-05-24
+---
+
+`skill-creator`는 Claude가 새 스킬을 만들거나 기존 스킬을 개선할 때 사용하는 메타 스킬입니다. 일반 스킬이 Claude에게 특정 업무를 잘하는 방법을 가르친다면, `skill-creator`는 Claude에게 "스킬을 잘 만드는 방법"을 가르칩니다.
+
+이 스킬의 핵심은 `SKILL.md` 초안을 빨리 써내는 것이 아닙니다. 사용자의 의도를 정리하고, 현실적인 테스트 프롬프트를 만들고, 스킬을 썼을 때와 쓰지 않았을 때의 결과를 비교하고, 사람이 결과를 리뷰한 뒤 다시 개선하는 루프가 중심입니다. 단순한 템플릿이라기보다 스킬 제작을 하나의 작은 제품 개발 과정처럼 다루는 안내서에 가깝습니다.
+
+## 왜 필요한가
+
+스킬은 겉으로 보면 간단합니다. 폴더 하나를 만들고, 그 안에 `SKILL.md`를 넣고, frontmatter에 이름과 설명을 쓰면 시작할 수 있습니다. 하지만 실제로 쓸 만한 스킬을 만드는 일은 조금 더 까다롭습니다.
+
+- 스킬이 언제 호출되어야 하는지 애매할 수 있습니다.
+- 설명이 너무 약하면 필요한 상황에서도 호출되지 않습니다.
+- 본문 지침이 길기만 하고 실제 실행에는 도움이 안 될 수 있습니다.
+- 테스트 없이 만든 스킬은 몇 개의 예시에서는 좋아 보여도 다른 요청에서 쉽게 무너집니다.
+- 개선 과정에서 특정 테스트에만 맞춘 과적합이 생길 수 있습니다.
+- 사람의 품질 판단과 정량 평가를 어떻게 함께 볼지 정하기 어렵습니다.
+
+`skill-creator`는 이 문제를 줄이기 위해 스킬 제작 과정을 의도 포착, 작성, 테스트, 비교, 리뷰, 개선으로 나눕니다.
+
+## 설치 방법
+
+`skill-creator`는 Anthropic의 `skills` 저장소에 포함되어 있고, Claude Code에서는 `anthropic-agent-skills` 마켓플레이스의 `example-skills` 플러그인으로 설치할 수 있습니다.
+
+```text
+/plugin marketplace add anthropics/skills
+/plugin install example-skills@anthropic-agent-skills
+```
+
+설치 후에는 다음과 같은 요청에서 사용할 수 있습니다.
+
+```text
+새 스킬을 하나 만들고 싶어. 우리 팀의 월간 리포트 작성 흐름을 Claude가 따라 하게 해줘.
+```
+
+```text
+이 SKILL.md가 잘 트리거되지 않는 것 같아. description을 개선하고 테스트까지 해줘.
+```
+
+```text
+기존 데이터 추출 스킬이 결과가 들쭉날쭉해. eval을 만들고 개선 루프를 돌려줘.
+```
+
+## 설치하면 달라지는 점
+
+`skill-creator`가 활성화되면 Claude는 스킬을 바로 작성하기보다 먼저 작업의 모양을 잡습니다.
+
+1. 이 스킬이 Claude에게 무엇을 가능하게 해야 하는지 묻습니다.
+2. 어떤 사용자 요청에서 트리거되어야 하는지 확인합니다.
+3. 기대 출력 형식과 성공 기준을 정리합니다.
+4. 테스트 케이스가 필요한지 판단합니다.
+5. `SKILL.md` 초안을 작성합니다.
+6. 실제 사용자처럼 보이는 테스트 프롬프트를 만듭니다.
+7. 스킬을 쓴 실행과 기준 실행을 비교합니다.
+8. 정량 평가와 사람 리뷰를 함께 보고 개선합니다.
+
+## 주요 기능 / 스킬 구조
+
+| 구분 | 구성 요소 | 역할 |
+| --- | --- | --- |
+| 핵심 지침 | `SKILL.md` | 스킬 생성, 테스트, 평가, 개선, description 최적화 흐름을 안내합니다. |
+| 평가 지침 | `agents/grader.md` | 실행 결과가 기대 조건을 만족하는지 판정합니다. |
+| 분석 지침 | `agents/analyzer.md` | benchmark에서 패턴, flaky eval, 시간과 토큰 tradeoff를 읽습니다. |
+| 비교 지침 | `agents/comparator.md` | 두 버전의 출력을 blind comparison으로 비교합니다. |
+| 스키마 문서 | `references/schemas.md` | `evals.json`, `grading.json`, `benchmark.json` 같은 결과 파일 구조를 설명합니다. |
+| 집계 스크립트 | `scripts.aggregate_benchmark` | 실행 결과를 benchmark로 묶어 pass rate, 시간, 토큰을 비교합니다. |
+| 리뷰어 | `eval-viewer/generate_review.py` | 사람이 테스트 결과와 benchmark를 보고 피드백할 수 있는 리뷰 화면을 만듭니다. |
+
+## 기본 워크플로
+
+첫 단계는 의도 포착입니다. Claude는 바로 `SKILL.md`를 쓰기보다, 무엇을 가능하게 할 스킬인지, 언제 호출되어야 하는지, 어떤 출력이 성공인지 확인합니다. 기존 대화에 이미 힌트가 있다면 먼저 거기서 정보를 뽑고, 부족한 부분만 질문합니다.
+
+그다음 `SKILL.md`를 작성합니다. frontmatter에는 `name`과 `description`이 필요하고, description에는 스킬이 하는 일뿐 아니라 언제 써야 하는지도 분명히 들어가야 합니다. Claude가 스킬을 과소 호출하는 경향이 있으므로 description을 조금 적극적으로 쓰는 편이 좋습니다.
+
+초안이 생기면 테스트 프롬프트를 만듭니다. 보통 2-3개로 시작하고, 실제 사용자가 말할 법한 문장이어야 합니다. 파일 변환, 데이터 추출, 코드 생성처럼 객관적으로 확인할 수 있는 작업은 assertion을 붙이기 좋습니다. 반대로 글쓰기 스타일처럼 주관적 판단이 큰 작업은 정량 평가보다 사람 리뷰를 중심에 둡니다.
+
+평가는 with-skill 실행과 baseline 실행을 비교하는 방식입니다. 새 스킬이라면 baseline은 스킬 없이 같은 프롬프트를 수행한 결과입니다. 기존 스킬을 개선하는 경우라면 이전 버전이 baseline이 됩니다.
+
+마지막은 반복 개선입니다. 사용자의 피드백을 읽고 `SKILL.md`를 고치되, 특정 테스트 하나만 통과하도록 문장을 덧대지 않습니다. 반복되는 실패 패턴을 찾아 더 일반적인 지침으로 바꾸는 것이 핵심입니다.
+
+## description 최적화
+
+`skill-creator`에는 스킬 description을 개선하는 흐름도 있습니다. description은 Claude가 스킬을 호출할지 판단할 때 가장 먼저 보는 정보이기 때문에, 너무 약하면 필요한 상황에서 호출되지 않고 너무 넓으면 엉뚱한 상황에서 호출될 수 있습니다.
+
+이 단계에서는 should-trigger와 should-not-trigger query를 섞어 만든 뒤, 현재 description이 어떤 요청에서 잘못 동작하는지 봅니다. 특히 should-not-trigger에는 완전히 무관한 문장보다 애매하게 가까운 near-miss를 넣는 편이 더 유용합니다.
+
+## 언제 쓰면 좋은가
+
+- 팀의 반복 업무를 Claude 스킬로 만들 때
+- 파일 처리, 데이터 추출, 리포트 작성처럼 결과 검증이 중요한 업무를 스킬화할 때
+- 이미 만든 스킬이 어떤 프롬프트에서는 잘 되고 어떤 프롬프트에서는 무너질 때
+- `SKILL.md`는 있지만 테스트 프롬프트와 성공 기준이 없을 때
+- 스킬 description이 너무 좁거나 넓어 트리거가 불안정할 때
+
+## 주의할 점
+
+`skill-creator`는 평가 환경의 영향을 많이 받습니다. Claude Code처럼 subagent와 로컬 파일 시스템을 쓸 수 있는 환경에서는 with-skill과 baseline을 병렬로 실행할 수 있습니다. 반면 환경이 제한된 곳에서는 수동 실행과 사람 리뷰 중심으로 단순화해야 합니다.
+
+또한 모든 스킬에 정량 평가가 맞는 것은 아닙니다. PDF에서 필드 값을 추출하는 스킬은 assertion으로 검증하기 좋지만, 브랜드 톤에 맞춰 글을 다듬는 스킬은 사람이 직접 판단해야 할 부분이 큽니다.
+
+개선할 때는 과적합을 조심해야 합니다. 테스트 3개를 통과하려고 지침을 너무 구체적으로 쓰면, 실제 네 번째 요청에서 오히려 약해집니다. 특정 예시를 외우게 만드는 것이 아니라, 실패의 이유를 일반화해서 다음 요청에도 통하는 작업 방식으로 바꾸는 것이 좋은 개선입니다.
+
+## 한 문장으로 정리
+
+`skill-creator`는 Claude가 스킬을 "작성"하는 데서 멈추지 않고, 테스트하고 비교하고 사람 피드백으로 반복 개선하게 만드는 스킬 제작용 메타 스킬입니다.
+
+## 참고 링크
+
+- [Anthropic skills 저장소](https://github.com/anthropics/skills)
+- [skill-creator 디렉터리](https://github.com/anthropics/skills/tree/main/skills/skill-creator)
+- [skill-creator 원문 SKILL.md](https://raw.githubusercontent.com/anthropics/skills/main/skills/skill-creator/SKILL.md)
+- [Anthropic skills marketplace catalog](https://raw.githubusercontent.com/anthropics/skills/main/.claude-plugin/marketplace.json)

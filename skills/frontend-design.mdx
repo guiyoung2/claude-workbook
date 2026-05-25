@@ -1,0 +1,96 @@
+---
+title: "frontend-design: 평범한 AI식 UI를 벗어나는 프런트엔드 디자인 스킬"
+name: "frontend-design"
+description: "웹 UI를 만들 때 강한 디자인 관점을 먼저 정하고 실제 코드로 끝까지 밀어붙이게 하는 스킬"
+category: skill
+github: "https://github.com/anthropics/skills/tree/main/skills/frontend-design"
+installCmd: "/plugin install example-skills@anthropic-agent-skills"
+date: 2026-05-24
+---
+
+`frontend-design`는 Claude가 웹 UI를 만들 때 일반적인 템플릿 느낌에서 벗어나도록 돕는 Anthropic 예제 스킬입니다. 웹사이트, 랜딩 페이지, 대시보드, React 컴포넌트, HTML/CSS 레이아웃처럼 시각적 품질이 중요한 프런트엔드 작업에서 사용합니다.
+
+이 스킬은 "예쁘게 꾸며줘"를 단순한 색상 변경으로 처리하지 않습니다. 먼저 화면의 목적, 사용자, 톤, 기술 제약, 차별점을 정리하고, 그 방향을 타이포그래피, 색, 모션, 공간 구성, 배경 디테일에 반영합니다. 결과물도 설명이나 컨셉 보드가 아니라 실제 동작하는 프런트엔드 코드여야 합니다.
+
+## 왜 필요한가
+
+AI가 만든 UI는 빠르게 나오지만 종종 비슷비슷해집니다.
+
+- 보라색 그라데이션과 흰 카드 조합으로 수렴합니다.
+- 기본 폰트와 무난한 spacing에 기대어 브랜드나 도메인의 개성이 사라집니다.
+- 카드형 섹션을 반복해 화면 구조가 예측 가능해집니다.
+- 미감은 말하지만 실제 코드의 인터랙션과 반응형 품질은 부족합니다.
+- 디자인 시스템이 없는 상황에서 아무 방향 없이 꾸밈만 늘어납니다.
+
+`frontend-design`는 이 문제를 줄이기 위해 구현 전에 디자인 방향을 먼저 고르게 합니다. 화려함 자체가 목표는 아닙니다. 중요한 것은 화면의 목적에 맞는 분명한 관점입니다.
+
+## 설치 방법
+
+`frontend-design`는 Anthropic의 `skills` 저장소에 포함되어 있고, Claude Code에서는 `anthropic-agent-skills` 마켓플레이스의 `example-skills` 플러그인으로 설치할 수 있습니다.
+
+```text
+/plugin marketplace add anthropics/skills
+/plugin install example-skills@anthropic-agent-skills
+```
+
+설치 후에는 다음 같은 요청에서 사용할 수 있습니다.
+
+```text
+SaaS 설정 화면을 React로 만들어줘. 조용하지만 고급스럽고 반복 사용하기 편해야 해.
+```
+
+```text
+이 랜딩 페이지를 더 기억에 남게 다시 디자인해줘. 코드는 지금 구조를 유지해줘.
+```
+
+## 설치하면 무엇이 달라지나
+
+1. 구현 전에 화면의 목적과 사용자를 정리합니다.
+2. brutally minimal, editorial, industrial, playful, luxury 같은 명확한 미적 방향을 고릅니다.
+3. 기술 제약, 접근성, 성능, 기존 디자인 시스템을 확인합니다.
+4. 기억에 남을 시각적 차별점을 정합니다.
+5. 폰트, 색, 모션, 공간, 배경 디테일을 같은 방향으로 맞춥니다.
+6. 실제 동작하는 프런트엔드 코드로 구현합니다.
+7. 흔한 AI식 패턴으로 수렴하지 않았는지 점검합니다.
+
+## 주요 기능 / 스킬 구조
+
+| 구분 | 구성 요소 | 역할 |
+| --- | --- | --- |
+| 핵심 지침 | `SKILL.md` | 디자인 사고, 미적 방향 선택, 구현 기준, 피해야 할 AI 디자인 패턴을 안내합니다. |
+| 설치 묶음 | `example-skills` | `frontend-design`를 포함한 Anthropic 예제 스킬 플러그인입니다. |
+
+## 기본 워크플로
+
+첫 단계는 목적 파악입니다. Claude는 화면이 어떤 문제를 해결하는지, 누가 쓰는지, 어떤 맥락에서 쓰는지 확인합니다. 대시보드와 포스터형 웹 아티팩트는 필요한 밀도와 표현 방식이 다르기 때문입니다.
+
+그다음 톤을 고릅니다. 미니멀한 화면이라도 그냥 비어 있는 화면이 아니라, 간격, 타이포그래피, 대비, 상태 표현이 의도적으로 조율된 화면이어야 합니다. 반대로 화려한 화면은 하나의 컨셉 아래에서 움직여야 합니다.
+
+구현 단계에서는 실제 코드가 중심입니다. HTML/CSS/JS, React, Vue 등 프로젝트에 맞는 방식으로 만들고, 애니메이션이나 hover 상태, 배경 질감, 레이아웃의 리듬까지 고려합니다. 기존 디자인 시스템이 있다면 그 규칙을 먼저 따릅니다.
+
+마지막으로 검증합니다. 데스크톱과 모바일에서 텍스트가 넘치거나 겹치지 않는지, 인터랙션이 동작하는지, 콘솔 에러가 없는지 확인합니다. 기본 폰트, 보라색 그라데이션, 반복 카드 같은 흔한 선택에 기대고 있지 않은지 다시 봅니다.
+
+## 언제 쓰면 좋은가
+
+- 새 웹사이트나 랜딩 페이지를 만들 때
+- React/Vue 컴포넌트의 시각 완성도를 높일 때
+- 제품 대시보드나 앱 첫 화면이 너무 평범해 보일 때
+- HTML/CSS 레이아웃에 명확한 시각 방향이 필요할 때
+- 포스터, 웹 아티팩트, 인터랙티브 페이지처럼 첫인상이 중요한 결과물을 만들 때
+
+## 주의할 점
+
+`frontend-design`는 강한 미적 선택을 요구하지만, 모든 화면이 화려해야 한다는 뜻은 아닙니다. 업무용 내부 도구라면 조용하고 밀도 높은 utilitarian 방향이 더 좋을 수 있습니다. 브랜드 가이드나 디자인 시스템이 있는 프로젝트에서는 그 제약이 먼저입니다.
+
+또한 흔한 폰트와 색 조합을 피하라는 말이 접근성, 성능, 유지보수성을 희생하라는 뜻은 아닙니다. 좋은 결과는 낯선 장식을 많이 넣은 화면이 아니라, 목적에 맞는 선택이 끝까지 일관된 화면입니다.
+
+## 한 문장으로 정리
+
+`frontend-design`는 Claude가 웹 UI를 만들 때 먼저 강한 디자인 관점을 정하고, 그 관점을 실제 동작하는 프런트엔드 코드로 끝까지 밀어붙이게 하는 스킬입니다.
+
+## 참고 링크
+
+- [Anthropic skills 저장소](https://github.com/anthropics/skills)
+- [frontend-design 디렉터리](https://github.com/anthropics/skills/tree/main/skills/frontend-design)
+- [frontend-design 원문 SKILL.md](https://raw.githubusercontent.com/anthropics/skills/main/skills/frontend-design/SKILL.md)
+- [Anthropic skills marketplace catalog](https://raw.githubusercontent.com/anthropics/skills/main/.claude-plugin/marketplace.json)

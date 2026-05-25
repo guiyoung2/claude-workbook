@@ -1,0 +1,92 @@
+---
+title: "code-review: PR 리뷰를 여러 에이전트와 confidence scoring으로 자동화하는 플러그인"
+name: "code-review"
+description: "PR 리뷰를 여러 에이전트에게 나누어 맡기고 confidence scoring으로 noise를 줄이는 Claude Code 공식 플러그인"
+category: plugin
+github: "https://github.com/anthropics/claude-plugins-official/tree/main/plugins/code-review"
+installCmd: "/plugin install code-review@claude-plugins-official"
+date: 2026-05-24
+---
+
+`code-review`는 GitHub pull request를 자동으로 검토하는 Claude Code 공식 플러그인입니다. `/code-review` 명령을 실행하면 Claude가 PR 상태를 확인하고, 관련 `CLAUDE.md` 지침과 변경 요약을 모은 뒤, 여러 전문 에이전트에게 서로 다른 관점의 리뷰를 맡깁니다.
+
+이 플러그인의 특징은 리뷰 결과를 바로 댓글로 남기지 않는다는 점입니다. 각 이슈는 다시 confidence scorer를 거쳐 0-100 점수로 평가되고, 기본값으로 80점 미만은 걸러집니다. 목표는 많은 지적을 만드는 것이 아니라, 사람이 바로 확인할 만한 고확신 이슈만 남기는 것입니다.
+
+## 왜 필요한가
+
+AI 코드 리뷰는 빠르지만, 그대로 쓰면 noise가 문제가 됩니다.
+
+- 실제 버그가 아닌 것을 버그처럼 지적할 수 있습니다.
+- PR이 만들지 않은 기존 문제를 지적할 수 있습니다.
+- linter나 typechecker가 잡을 사소한 문제를 반복할 수 있습니다.
+- 팀의 `CLAUDE.md` 지침을 놓칠 수 있습니다.
+- 과거 변경 이력이나 이전 PR comment 맥락을 보지 못할 수 있습니다.
+
+`code-review`는 이 문제를 줄이기 위해 리뷰를 여러 관점으로 나누고, 각 지적을 confidence scoring으로 한 번 더 걸러냅니다.
+
+## 설치 방법
+
+Claude Code에서는 Anthropic 공식 플러그인 marketplace에서 설치할 수 있습니다.
+
+```text
+/plugin install code-review@claude-plugins-official
+```
+
+공식 marketplace가 등록되어 있지 않다면 먼저 추가합니다.
+
+```text
+/plugin marketplace add anthropics/claude-plugins-official
+```
+
+## 설치하면 무엇이 달라지나
+
+1. PR branch에서 `/code-review`를 실행할 수 있습니다.
+2. closed, draft, trivial, 이미 리뷰된 PR은 자동으로 건너뜁니다.
+3. 관련 `CLAUDE.md` 지침을 수집해 compliance를 확인합니다.
+4. 변경 diff의 명백한 버그를 찾습니다.
+5. git blame, history, 과거 PR comment, 코드 주석을 검토 맥락으로 사용합니다.
+6. 각 이슈를 0-100 confidence로 평가합니다.
+7. 80점 이상 이슈만 PR 댓글로 게시합니다.
+
+## 주요 기능 / 스킬 구조
+
+| 구분 | 구성 요소 | 역할 |
+| --- | --- | --- |
+| 명령 | `commands/code-review.md` | `/code-review` 절차, 에이전트 구성, confidence scoring, 댓글 형식을 정의합니다. |
+| 메타데이터 | `.claude-plugin/plugin.json` | 플러그인 이름, 설명, 작성자 정보를 제공합니다. |
+| README | `README.md` | 사용법, 요구사항, troubleshooting, best practices를 설명합니다. |
+| marketplace 항목 | `.claude-plugin/marketplace.json` | 공식 플러그인 디렉터리에서 노출되는 정보를 제공합니다. |
+
+## 기본 워크플로
+
+먼저 PR이 리뷰 대상인지 확인합니다. 닫힌 PR, draft PR, 너무 단순한 자동 PR, 이미 리뷰된 PR은 건너뜁니다.
+
+다음으로 Claude가 root와 변경 파일 주변의 `CLAUDE.md`를 찾고, PR 변경사항을 요약합니다. 이후 여러 Sonnet 에이전트가 병렬로 리뷰합니다. `CLAUDE.md` 준수, 변경 diff의 명백한 버그, git blame과 history, 이전 PR comment, 코드 주석 준수를 각각 봅니다.
+
+이슈가 나오면 Haiku confidence scorer가 각 이슈를 다시 평가합니다. 기본 threshold는 80이고, 이 기준보다 낮은 지적은 게시하지 않습니다.
+
+마지막으로 `gh` CLI로 GitHub PR에 댓글을 남깁니다. 댓글은 짧게 유지하고, 관련 코드나 파일은 full SHA와 line range가 포함된 링크로 연결합니다.
+
+## 언제 쓰면 좋은가
+
+- 의미 있는 변경이 있는 모든 PR
+- critical path를 건드리는 PR
+- 여러 contributor가 함께 작업한 PR
+- repository 지침 준수가 중요한 PR
+- 사람 리뷰 전에 고확신 이슈를 미리 보고 싶을 때
+
+## 주의할 점
+
+`code-review`는 CI를 대체하지 않습니다. command 파일은 build, typecheck, lint를 직접 실행하지 말라고 안내합니다. 컴파일 오류나 formatter 오류처럼 자동화된 검사로 잡을 문제는 별도 workflow가 담당해야 합니다.
+
+또한 GitHub PR을 대상으로 하므로 GitHub remote가 있는 git 저장소와 인증된 GitHub CLI가 필요합니다. 큰 PR에서는 병렬 에이전트를 쓰더라도 시간이 걸릴 수 있으므로, 너무 큰 변경은 작은 PR로 나누는 편이 좋습니다.
+
+## 한 문장으로 정리
+
+`code-review`는 PR 리뷰를 여러 전문 에이전트에게 나누어 맡기고 confidence scoring으로 noise를 줄여, 사람 리뷰 전에 고확신 이슈만 끌어올리는 Claude Code 플러그인입니다.
+
+## 참고 링크
+
+- [code-review 원본 디렉터리](https://github.com/anthropics/claude-plugins-official/tree/main/plugins/code-review)
+- [code-review README](https://raw.githubusercontent.com/anthropics/claude-plugins-official/main/plugins/code-review/README.md)
+- [Claude plugins official marketplace](https://raw.githubusercontent.com/anthropics/claude-plugins-official/main/.claude-plugin/marketplace.json)
