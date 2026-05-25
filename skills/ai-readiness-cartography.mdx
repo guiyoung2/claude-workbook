@@ -1,0 +1,77 @@
+---
+title: "ai-readiness-cartography: 레포가 AI 코딩 에이전트에게 준비됐는지 한 장으로 보여주는 스킬"
+name: "ai-readiness-cartography"
+description: "jha0313/skills_repo의 ai-readiness-cartography 스킬을 바탕으로 AI-Ready v2 루브릭, 산출물, 실행 흐름, 대시보드 구성, 주의점을 정리합니다."
+category: "skill"
+source: "https://github.com/jha0313/skills_repo/tree/main/ai-readiness-cartography"
+github: "https://github.com/jha0313/skills_repo/tree/main/ai-readiness-cartography"
+date: "2026-05-26"
+---
+
+# ai-readiness-cartography: 레포가 AI 코딩 에이전트에게 준비됐는지 한 장으로 보여주는 스킬
+
+`ai-readiness-cartography`는 코드베이스가 Claude Code 같은 코딩 에이전트에게 얼마나 다루기 쉬운지 평가하는 스킬입니다. 레포를 100점 만점의 AI-Ready v2 루브릭으로 감사하고, JSON 점수표와 단일 HTML 대시보드, ROI 순 액션 리스트를 함께 만듭니다.
+
+이 스킬의 좋은 점은 "AI 문서가 있나?"에서 멈추지 않는다는 겁니다. AI가 실제로 파일을 찾고, 숨은 규칙을 회수하고, 변경 영향 범위를 이해하고, 검증 명령까지 실행할 수 있는지를 봅니다. 그래서 결과물은 예쁜 지도보다 팀이 바로 다음 행동을 결정할 수 있는 기술 대시보드에 가깝습니다.
+
+## 왜 필요한가
+
+AI가 코드를 잘 못 고치는 이유는 모델 성능만의 문제가 아닙니다. 레포 안에 길잡이가 없고, 핵심 명령어가 흩어져 있고, 중요한 예외가 사람 머릿속에만 있으면 에이전트는 결국 grep과 추측에 의존합니다.
+
+`ai-readiness-cartography`는 그 문제를 점수와 evidence로 드러냅니다. 어떤 모듈에 `CLAUDE.md`나 `AGENTS.md`가 없는지, 컨텍스트 파일이 실제 경로를 가리키는지, 큰 파일이나 의존성 흐름이 에이전트에게 위험한지, 검증 루프가 있는지 한 번에 봅니다.
+
+## 루브릭 구조
+
+스킬은 레포를 7개 항목으로 평가합니다.
+
+| 항목 | 배점 | 의미 |
+| --- | ---: | --- |
+| AI Navigation & Coverage | 15 | 핵심 모듈과 워크플로를 빠르게 찾을 수 있는가 |
+| Context Document Quality | 20 | 문서가 짧고 실행 가능한 안내를 주는가 |
+| Tribal Knowledge Externalization | 20 | 숨은 규칙과 실패 패턴이 문서화되었는가 |
+| Cross-Module Dependency & Data Flow Mapping | 15 | 변경 영향 범위를 추적할 수 있는가 |
+| Verification & Quality Gates | 15 | 경로, 명령, 코드 변경을 검증하는 체계가 있는가 |
+| Freshness & Self-Maintenance | 10 | 문서가 낡지 않도록 자동 점검되는가 |
+| Agent Performance Outcomes | 5 | AI 작업 성과가 측정되는가 |
+
+등급은 `AI-Native`, `AI-Ready`, `AI-Assisted`, `AI-Fragile`, `AI-Hostile`로 나뉩니다. 특히 존재하지 않는 파일 경로, 즉 hallucinated path는 높은 위험으로 봅니다. AI-ready 문서의 기본값은 "그럴듯함"이 아니라 "검증된 경로"여야 하기 때문입니다.
+
+## 산출물
+
+첫 번째 산출물은 `ai-readiness-score.json`입니다. 다른 도구가 읽을 수 있는 raw 점수표로, 카테고리별 점수와 evidence, 세부 점수, findings, ROI actions, large files 정보가 들어갑니다.
+
+두 번째는 단일 HTML 대시보드입니다. 스킬은 `assets/template.html`을 복사해 JSON 값을 끼워 넣는 방식을 권합니다. score hero, 7개 카테고리 막대, structural map, wins, top ROI actions를 한 화면에서 보여줍니다.
+
+세 번째는 ROI 우선순위 액션 리스트입니다. "문서 개선" 같은 흐린 표현보다 effort, impact, priority를 함께 보여주는 것이 핵심입니다. 예를 들어 `S (<1h)`로 broken reference를 고치면 작업당 탐색 시간을 줄일 수 있다는 식으로 말합니다.
+
+## 기본 흐름
+
+먼저 `scripts/score.py`를 실행해 JSON 점수표를 만듭니다. 이 스크립트는 Python 표준 라이브러리만 사용하며, `CLAUDE.md`와 `AGENTS.md` 커버리지, context file, broken path, large file, build/test/CI 단서 등을 자동으로 잡습니다.
+
+그 다음 자동 점수만으로 부족한 항목을 보강합니다. quick commands가 실제로 복사해 실행 가능한지, key files가 충분히 좁혀져 있는지, hidden rule이 드러나 있는지, critic review나 prompt test가 있는지는 문서를 직접 봐야 합니다.
+
+마지막으로 템플릿 HTML을 채웁니다. 새 디자인을 즉석에서 만들지 않고 정해진 템플릿을 쓰는 이유는 레포 간 비교 가능성을 유지하기 위해서입니다. 이 스킬은 차트 라이브러리 없이 인라인 SVG와 CSS로 고정된 기술 대시보드를 만들도록 설계되어 있습니다.
+
+## 언제 쓰면 좋은가
+
+새 팀에 레포를 넘기기 전, Claude Code를 본격 도입하기 전, 대규모 리팩터링 전에 쓰기 좋습니다. "AI가 이 레포를 잘 다룰 수 있을까?"라는 질문을 감이 아니라 점수, evidence, 다음 액션으로 바꿔줍니다.
+
+또 문서 정리 작업을 시작하기 전에도 유용합니다. 막연히 README를 늘리는 대신, 에이전트가 실제 작업에서 막히는 병목을 먼저 고칠 수 있습니다.
+
+## 주의할 점
+
+이 스킬은 자동 채점 도구이지만 완전 자동 감사자는 아닙니다. 자동으로 잘 잡는 것은 파일, 경로, 커버리지, 인프라 단서입니다. 반대로 문서 품질, 암묵지의 깊이, 검토 루프의 신뢰도는 사람이 보강해야 합니다.
+
+그리고 대시보드 톤을 지켜야 합니다. 이름이 cartography라고 해서 지도 장식, 나침반, 양피지 같은 은유로 흐르면 스킬의 가치가 흐려집니다. 목적은 예쁜 시각화가 아니라 AI 도입 준비 상태를 빠르게 판단하는 것입니다.
+
+## 한 문장으로 정리
+
+`ai-readiness-cartography`는 레포가 AI에게 "읽기 좋은 문서"를 가진 수준을 넘어, AI가 탐색하고 수정하고 검증할 수 있는 작업 환경인지 점수와 대시보드로 드러내는 스킬입니다.
+
+## 참고 링크
+
+- [원본 저장소](https://github.com/jha0313/skills_repo)
+- [ai-readiness-cartography 디렉터리](https://github.com/jha0313/skills_repo/tree/main/ai-readiness-cartography)
+- [SKILL.md 원문](https://raw.githubusercontent.com/jha0313/skills_repo/main/ai-readiness-cartography/SKILL.md)
+- [생성 프롬프트](https://raw.githubusercontent.com/jha0313/skills_repo/main/ai-readiness-cartography/CREATION_PROMPT.md)
+- [채점 스크립트](https://raw.githubusercontent.com/jha0313/skills_repo/main/ai-readiness-cartography/scripts/score.py)

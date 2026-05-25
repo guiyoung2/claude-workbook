@@ -12,6 +12,7 @@ export interface SkillMeta {
   category: string;
   installCmd?: string;
   github?: string;
+  source?: string;
   date: string;
 }
 
@@ -41,6 +42,7 @@ export function getAllSkills(): SkillMeta[] {
         category: (data.category as string) ?? "general",
         installCmd: data.installCmd as string | undefined,
         github: data.github as string | undefined,
+        source: data.source as string | undefined,
         date:
           data.date instanceof Date
             ? data.date.toISOString().split("T")[0]
@@ -66,10 +68,20 @@ export function getSkillBySlug(slug: string): Skill {
     category: (data.category as string) ?? "general",
     installCmd: data.installCmd as string | undefined,
     github: data.github as string | undefined,
+    source: data.source as string | undefined,
     date:
       data.date instanceof Date
         ? data.date.toISOString().split("T")[0]
         : String(data.date),
     content,
+  };
+}
+
+// 공식 / 커스텀 스킬 분리 반환 (source 유무로 판단)
+export function getGroupedSkills(): { official: SkillMeta[]; custom: SkillMeta[] } {
+  const all = getAllSkills();
+  return {
+    official: all.filter((s) => !s.source),
+    custom: all.filter((s) => !!s.source),
   };
 }
