@@ -1,0 +1,81 @@
+---
+title: "grill-with-doc, grill-me: 계획을 먼저 맞추고 도메인 문서를 함께 다듬는 스킬"
+name: "grill-with-doc, grill-me"
+description: "구현 전에 사용자와 에이전트의 이해를 맞추고, 도메인 용어와 ADR을 문서로 남기는 Matt Pocock의 계획 검토 스킬"
+category: skill
+github: "https://github.com/mattpocock/skills"
+date: 2026-05-26
+---
+
+Matt Pocock의 `grill-me`와 `grill-with-docs`는 AI 에이전트가 구현 전에 사용자와의 이해를 먼저 맞추게 만드는 스킬입니다. 빠르게 코드를 쓰기 전에, 계획의 결정 트리를 하나씩 따라가며 필요한 질문만 던집니다.
+
+## 왜 필요한가
+
+개발 요청은 대부분 처음부터 완벽하지 않습니다. "관리자 화면을 개선해 줘" 같은 말에는 성능, 권한, UX, 데이터 구조, 완료 기준이 모두 섞여 있을 수 있습니다. 에이전트가 바로 구현하면 어느 하나를 임의로 고르게 됩니다.
+
+`grill-me`는 이 문제를 줄이기 위해 작업 전에 질문 세션을 엽니다. 질문을 한 번에 하나만 던지고, 각 질문에 추천 답변을 함께 제시합니다.
+
+`grill-with-docs`는 한 단계 더 나아갑니다. 코드베이스의 기존 언어와 문서를 함께 봅니다. `CONTEXT.md`에 정의된 용어와 사용자의 말이 충돌하면 바로 짚고, 합의된 용어는 glossary에 남깁니다. 중요한 결정은 조건을 통과할 때만 ADR로 기록합니다.
+
+## 설치 방법
+
+```text
+npx skills@latest add mattpocock/skills
+```
+
+개별 스킬만 추가할 수 있는 환경이라면 다음처럼 지정할 수 있습니다.
+
+```text
+npx skills@latest add mattpocock/skills --skill grill-me
+npx skills@latest add mattpocock/skills --skill grill-with-docs
+```
+
+저장소 전체를 설치한다면 `/setup-matt-pocock-skills`도 함께 선택하는 것이 좋습니다. 이 설정 스킬은 issue tracker, triage label, 문서 저장 위치 같은 repo-local 전제를 먼저 잡아 줍니다.
+
+## 구성
+
+| 구분 | 구성 요소 | 역할 |
+| --- | --- | --- |
+| 생산성 스킬 | `grill-me` | 계획이나 디자인을 집요하게 질문해 shared understanding에 도달하게 합니다. |
+| 엔지니어링 스킬 | `grill-with-docs` | 계획을 코드와 도메인 문서에 비춰 검토하고, 용어와 결정을 문서로 남깁니다. |
+| 보조 문서 | `CONTEXT-FORMAT.md` | `CONTEXT.md`를 도메인 glossary로 유지하는 방법을 설명합니다. |
+| 보조 문서 | `ADR-FORMAT.md` | ADR을 만들 조건과 최소 형식을 설명합니다. |
+
+## 기본 워크플로
+
+먼저 작업 성격을 고릅니다. 일반적인 계획 검토라면 `grill-me`가 충분합니다. 코드베이스의 도메인 언어, 기존 문서, 나중에 설명이 필요한 결정까지 걸려 있다면 `grill-with-docs`가 더 알맞습니다.
+
+그다음 에이전트는 직접 확인할 수 있는 사실을 먼저 봅니다. README, 코드, 기존 `CONTEXT.md`, ADR, 관련 문서를 읽고 사용자에게 물을 필요가 없는 질문을 줄입니다. 사용자에게 묻는 것은 우선순위, 범위, 허용 가능한 tradeoff처럼 의사결정이 필요한 부분입니다.
+
+질문은 한 번에 하나입니다. 좋은 질문은 현재 이해, 막힌 결정, 추천 답변, 실제 질문을 함께 담습니다. 사용자가 답하면 결정사항을 반영하고, 아직 중요한 불확실성이 남아 있을 때만 다음 질문으로 갑니다.
+
+`grill-with-docs`를 쓰는 경우 용어가 합의되면 `CONTEXT.md`에 glossary로 반영합니다. 구현 세부사항을 넣지 않고, 프로젝트 고유의 도메인 언어만 간결하게 남깁니다.
+
+ADR은 더 엄격하게 다룹니다. 나중에 바꾸기 어렵고, 맥락 없이 보면 놀랍고, 실제 대안 중 하나를 고른 결정일 때만 만듭니다.
+
+## 언제 쓰면 좋은가
+
+- 기능 구현 전에 범위와 성공 기준이 아직 흐릿할 때
+- 설계안의 edge case와 tradeoff를 먼저 보고 싶을 때
+- 에이전트가 사용자의 의도를 추측해 재작업이 자주 생길 때
+- 프로젝트 도메인 용어가 아직 흔들릴 때
+- 나중에 설명이 필요한 결정을 코드 밖에 남겨야 할 때
+
+## 주의할 점
+
+모든 작업에 grilling이 필요한 것은 아닙니다. 작은 오타 수정, 명확한 테스트 보강, 단순 설정 변경처럼 입력과 성공 기준이 이미 뚜렷한 작업에는 질문 세션이 오히려 느릴 수 있습니다.
+
+`grill-with-docs`를 사용할 때는 `CONTEXT.md`의 역할을 좁게 유지해야 합니다. 이 파일은 도메인 glossary입니다. 구현 결정, 임시 계획, 자세한 스펙은 다른 문서에 둡니다. ADR도 마찬가지입니다. "남길 수 있다"가 아니라 "미래의 독자가 정말 필요로 할 것이다"일 때만 남깁니다.
+
+## 한 문장으로 정리
+
+`grill-me`와 `grill-with-docs`는 AI 에이전트가 빨리 쓰기 전에 제대로 이해하게 만들고, 코드 작업에서는 그 이해를 도메인 언어와 ADR로 남기게 하는 계획 검토 스킬입니다.
+
+## 참고 링크
+
+- [mattpocock/skills 저장소](https://github.com/mattpocock/skills)
+- [README 원문](https://raw.githubusercontent.com/mattpocock/skills/main/README.md)
+- [grill-me 디렉터리](https://github.com/mattpocock/skills/tree/main/skills/productivity/grill-me)
+- [grill-with-docs 디렉터리](https://github.com/mattpocock/skills/tree/main/skills/engineering/grill-with-docs)
+- [CONTEXT-FORMAT.md](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/grill-with-docs/CONTEXT-FORMAT.md)
+- [ADR-FORMAT.md](https://raw.githubusercontent.com/mattpocock/skills/main/skills/engineering/grill-with-docs/ADR-FORMAT.md)
