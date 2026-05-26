@@ -1,0 +1,117 @@
+---
+title: "impeccable: AI 기본값 UI를 벗어나는 프런트엔드 디자인 스킬"
+name: "impeccable"
+description: "AI가 만든 UI의 흔한 패턴을 줄이는 23개 하위 명령과 PRODUCT.md·DESIGN.md 기반 디자인 언어 스킬"
+category: skill
+github: "https://github.com/pbakaus/impeccable"
+date: 2026-05-26
+---
+
+`impeccable`은 AI 코딩 에이전트가 웹 UI를 만들 때 익숙한 기본값으로 수렴하는 문제를 줄이기 위한 프런트엔드 디자인 스킬입니다.
+
+AI에게 "예쁘게 만들어줘"라고 말하면 결과는 자주 비슷해집니다. 보라색에서 파란색으로 이어지는 그라데이션, 카드 안의 카드, 전부 Inter, 둥근 아이콘 타일, 의미 없이 반짝이는 dark UI. `impeccable`은 이런 기본값을 피하기 위해 AI에게 더 구체적인 디자인 언어를 줍니다.
+
+## 왜 필요한가
+
+AI가 만든 UI는 빠르게 나오지만 종종 비슷비슷해집니다.
+
+- 프로젝트마다 보라색 그라데이션과 흰 카드 조합으로 수렴합니다.
+- 브랜드나 도메인의 개성 없이 무난한 기본 폰트와 spacing에 기댑니다.
+- 카드형 섹션이 반복되어 화면 구조가 예측 가능해집니다.
+- 모든 문구가 "Boost your productivity" 근처에 머뭅니다.
+
+`impeccable`은 이 문제를 줄이기 위해 23개 하위 명령으로 디자인의 특정 축을 직접 개선합니다. 제품 맥락을 먼저 파일로 저장하고, 이후 명령이 같은 맥락을 읽어 일관된 방향을 유지합니다.
+
+## 설치 방법
+
+GitHub에서 직접 설치합니다.
+
+```text
+/plugin install pbakaus/impeccable
+```
+
+CLI detector는 AI harness 없이도 별도로 사용할 수 있습니다.
+
+```text
+npx impeccable detect src/
+npx impeccable detect index.html
+npx impeccable detect https://example.com
+npx impeccable detect --fast --json .
+```
+
+## 설치하면 무엇이 달라지나
+
+설치 후 `/impeccable COMMAND TARGET` 형태로 사용합니다.
+
+```text
+/impeccable polish the pricing page
+/impeccable critique the homepage hero
+/impeccable harden the checkout flow
+```
+
+핵심은 `PRODUCT.md`와 `DESIGN.md` 두 파일입니다. 처음 쓰는 프로젝트라면 이 순서로 시작합니다.
+
+```text
+/impeccable teach     → PRODUCT.md 생성 (제품 맥락, persona, brand voice, reference)
+/impeccable document  → DESIGN.md 생성 (색, 타이포그래피, elevation, 컴포넌트)
+```
+
+이 두 파일이 생기면 이후 모든 명령이 같은 맥락을 읽습니다. `colorize`가 또 보라색 그라데이션으로 도망갈 가능성이 줄고, `typeset`이 대시보드에 editorial display font를 강요할 가능성도 줄어듭니다.
+
+## 주요 기능 / 스킬 구조
+
+23개 명령은 여섯 흐름으로 나눠 생각할 수 있습니다.
+
+| 단계 | 명령 | 용도 |
+| --- | --- | --- |
+| 초기 세팅 | `teach`, `document` | 제품 맥락과 디자인 시스템 파일 생성 |
+| 기획 | `shape`, `craft` | 구현 전 방향 정리, 또는 brief부터 구현까지 |
+| 평가 | `critique`, `audit` | 디자인 품질과 구현 품질 점검 |
+| 반복 개선 | `typeset`, `layout`, `colorize`, `animate`, `bolder`, `quieter`, `distill`, `delight`, `overdrive` | 특정 디자인 축 개선 |
+| 프로덕션 | `clarify`, `harden`, `adapt`, `optimize`, `polish`, `onboard` | copy, edge case, responsive, performance, first-run, final pass |
+| 시스템 | `extract`, `live` | 반복 패턴 추출, 브라우저 visual iteration |
+
+CLI detector는 gradient text, nested cards, low contrast, skipped heading, layout property animation 같은 문제를 정적 분석으로 잡습니다. 다만 persona, cognitive load, modal abuse 같은 판단은 `/impeccable critique`가 더 잘 봅니다.
+
+## 언제 쓰면 좋은가
+
+**이런 상황에서 효과적입니다:**
+
+- 새 기능을 처음부터 만들 때 → `craft` (discovery부터 구현까지 한 번에)
+- 화면 방향만 먼저 정하고 싶을 때 → `shape` (구현 spec이 아니라 compass)
+- 화면이 functionally done인데 좋은지 모르겠을 때 → `critique`
+- 출시 전 접근성·성능·anti-pattern을 점검할 때 → `audit`
+- 너무 평범하면 → `bolder`, 너무 강하면 → `quieter`, 너무 복잡하면 → `distill`
+- 색이 없으면 → `colorize`, 글자가 약하면 → `typeset`, 배치가 어색하면 → `layout`
+- 마지막 spacing·states·copy 디테일 → `polish`
+
+**추천 워크플로:**
+
+```text
+[초기 세팅] teach → document
+[기획]      shape → critique
+[프로덕션]  clarify → harden → adapt
+[반복 개선] bolder / colorize / distill → polish
+[밸런스]    quieter → polish
+[검증]      critique + audit
+```
+
+## 주의할 점
+
+`impeccable`은 linter가 아닙니다. 의견 있는 디자인 파트너에 가깝습니다. 기존 브랜드 가이드, 접근성 기준, 실제 사용자 연구가 있다면 그것이 먼저입니다.
+
+반박할 때도 이유를 구체적으로 줘야 합니다. "그냥 싫다"보다 "우리 제품은 장시간 쓰는 operator tool이라 hero식 boldness가 맞지 않는다"가 훨씬 좋은 입력입니다.
+
+모든 명령을 pin해서 `/` 메뉴에 펼쳐두면 오히려 불편합니다. 자주 쓰는 `critique`, `polish`, `audit` 정도만 shortcut으로 되살리는 편이 낫습니다.
+
+## 한 문장으로 정리
+
+`impeccable`은 23개 하위 명령과 PRODUCT.md·DESIGN.md 기반으로 AI가 만든 UI의 흔한 기본값 패턴을 줄이고, 제품에 맞는 일관된 디자인 언어를 유지하게 하는 스킬입니다.
+
+## 참고 링크
+
+- [원본 저장소](https://github.com/pbakaus/impeccable)
+- [공식 Docs](https://impeccable.style/docs/)
+- [Getting started](https://impeccable.style/tutorials/getting-started/)
+- [Designing with Impeccable](https://impeccable.style/designing/)
+- [Slop detector catalog](https://impeccable.style/slop/)
