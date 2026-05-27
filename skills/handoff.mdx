@@ -1,0 +1,81 @@
+---
+title: "handoff: 긴 AI 세션을 다음 에이전트에게 넘기는 스킬"
+name: "handoff"
+description: "긴 대화를 다음 세션이 이어받을 수 있는 임시 상태 전달 문서로 압축하는 Matt Pocock의 생산성 스킬"
+category: skill
+github: "https://github.com/mattpocock/skills/tree/main/skills/productivity/handoff"
+date: 2026-05-27
+---
+
+AI 에이전트와 오래 작업하다 보면 대화가 작업물보다 무거워지는 순간이 옵니다. 무엇을 고쳤는지, 어떤 검증이 실패했는지, 다음에는 어디서 시작해야 하는지 모두 대화 안에 섞입니다. 새 세션을 열면 같은 맥락을 다시 설명해야 하고, 이전 세션의 미묘한 결정은 쉽게 사라집니다.
+
+Matt Pocock의 `handoff`는 이 문제만 아주 작게 다룹니다. 현재 대화를 다음 에이전트가 이어받을 수 있는 Markdown 문서로 압축하고, 작업공간이 아닌 OS 임시 디렉터리에 저장합니다.
+
+## 왜 필요한가
+
+`handoff`의 역할은 대화 요약이 아니라 작업 상태 전달입니다. 문서에는 다음 세션의 초점, 현재 상태, 중요한 참조, 열린 질문, 추천 스킬이 들어갑니다. PRD, 계획서, ADR, 이슈, 커밋, diff에 이미 담긴 내용은 다시 길게 쓰지 않고 경로나 URL로만 참조합니다. 이렇게 해야 handoff가 거대한 문서가 되지 않고, 다음 에이전트가 빠르게 출발할 수 있는 안내판이 됩니다.
+
+## 설치 방법
+
+```text
+npx skills@latest add mattpocock/skills
+```
+
+개별 스킬만 추가할 수 있는 환경이라면 다음처럼 지정합니다.
+
+```text
+npx skills@latest add mattpocock/skills --skill handoff
+```
+
+## 기본 흐름
+
+1. 다음 세션의 초점을 먼저 정합니다
+2. 현재 대화에서 완료된 일, 남은 일, 중요한 실패나 검증 결과만 추립니다
+3. 이미 파일이나 이슈에 담긴 요구사항은 다시 쓰지 않고 링크합니다
+4. 열린 질문을 분리합니다 — 다음 에이전트가 가장 먼저 확인해야 할 결정 사항
+5. `suggested skills` 섹션에 다음 세션이 어떤 스킬을 왜 호출하면 좋은지 적습니다
+6. OS 임시 디렉터리에 저장합니다 (프로젝트 산출물이 아닌 세션 간 전달 메모)
+
+## 문서 구조
+
+```md
+# Handoff
+
+## Next Session Focus
+다음 세션이 이어받을 작업을 한두 문장으로 적습니다.
+
+## Current State
+완료된 일, 진행 중인 일, 검증 결과를 짧게 나눕니다.
+
+## Important References
+- 계획서: docs/example-plan.md
+- 관련 커밋: abc1234
+- 관련 이슈: https://github.com/org/repo/issues/1
+
+## Open Questions
+- 다음 구현 전에 결정해야 할 질문을 적습니다.
+
+## Suggested Skills
+- grill-me: 남은 의사결정을 한 번에 하나씩 좁히기 위해 사용합니다.
+- tdd: 버그 수정이나 기능 구현을 테스트 기준으로 이어가야 할 때 사용합니다.
+```
+
+## 언제 쓰면 좋은가
+
+- 세션이 길어졌고 작업이 아직 끝나지 않았을 때
+- 리서치, 구현, 디버깅, 리뷰가 섞여 있어 다음 에이전트가 어디까지 신뢰해도 되는지 불명확할 때
+- 검증된 사실과 남은 판단을 분리해야 할 때
+
+## 주의할 점
+
+바로 끝낼 수 있는 작은 작업에는 필요하지 않습니다. 최종 답변 한 번으로 충분한 상황에서 handoff까지 만들면 문서만 늘어납니다. 또한 디버깅 중에 나온 API 키, 비밀번호, 토큰 같은 민감 정보는 원문으로 남기지 않고, 어디서 다시 확인해야 하는지만 기록합니다.
+
+## 한 문장으로 정리
+
+`handoff`는 긴 AI 작업 세션을 다음 에이전트가 바로 이어받을 수 있도록, 중복과 민감 정보를 덜어낸 임시 상태 전달 문서로 압축하는 스킬입니다.
+
+## 참고 링크
+
+- [handoff 원본 디렉터리](https://github.com/mattpocock/skills/tree/main/skills/productivity/handoff)
+- [handoff SKILL.md 원문](https://raw.githubusercontent.com/mattpocock/skills/main/skills/productivity/handoff/SKILL.md)
+- [mattpocock/skills 저장소](https://github.com/mattpocock/skills)
