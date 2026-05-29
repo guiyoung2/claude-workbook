@@ -1,0 +1,113 @@
+---
+title: "revfactory/harness — Claude Code 프로젝트별 에이전트 팀 설계 메타 스킬"
+name: "revfactory-harness"
+description: "기능을 바로 구현하는 스킬이 아니라, 프로젝트에 맞는 에이전트 팀과 워크플로우를 설계해주는 메타 스킬 플러그인"
+category: custom
+date: 2026-05-30
+github: "https://github.com/revfactory/harness"
+installCmd: "/plugin marketplace add revfactory/harness"
+---
+
+`revfactory/harness`는 기능 구현 스킬이 아니다. Claude Code에서 프로젝트별 에이전트 팀과 스킬 세트를 **설계**해주는 메타 스킬 플러그인이다. 설치하면 "로그인 기능 구현 스킬"이 생기는 게 아니라, 이 프로젝트에서 어떤 역할과 절차로 반복 작업을 처리할지 설계하는 팩토리가 생긴다.
+
+## 왜 필요한가
+
+Claude Code의 에이전트와 스킬을 프로젝트마다 직접 설계하면 시간이 많이 걸린다. 팀 구성이 과해지거나, 역할이 중복되거나, 트리거 문장이 엉키는 문제도 자주 생긴다. Harness는 이 설계 과정을 자동화한다.
+
+- 프로젝트 구조와 개발 흐름을 읽고 에이전트 팀 초안을 제안한다
+- 기존 하네스의 중복·누락·충돌을 감사한다
+- 6가지 아키텍처 패턴 중 상황에 맞는 패턴을 선택한다
+
+## 설치 방법
+
+```text
+/plugin marketplace add revfactory/harness
+/plugin install harness@harness-marketplace
+```
+
+직접 설치도 가능하다.
+
+```bash
+cp -r skills/harness ~/.claude/skills/harness
+```
+
+> 설치 전 Claude Code 마켓플레이스에서 플러그인 이름을 확인하는 것이 안전하다.
+
+## 설치하면 무엇이 달라지나
+
+설치물은 전역 메타 스킬이다. 실제 작업용 하네스는 각 프로젝트 안에 생성된다.
+
+```text
+# 설치되는 전역 파일
+.claude-plugin/plugin.json
+skills/harness/SKILL.md
+skills/harness/references/
+
+# 하네스 구성 요청 후 프로젝트에 생기는 파일
+.claude/agents/*.md
+.claude/skills/*/SKILL.md
+CLAUDE.md
+```
+
+하네스 구성 요청 예시:
+
+```text
+하네스 구성해줘.
+
+이 프로젝트는 SaaS 웹앱이고, 기능 개발 시 요구사항 정리, 구현, 테스트, 코드 리뷰를 반복하고 싶어.
+작은 기능은 단일 흐름으로 처리하고, 인증/결제처럼 리스크가 큰 기능만 QA 에이전트를 분리해줘.
+기본 팀은 2~3명 이하로 설계해줘.
+```
+
+## 주요 기능 / 스킬 구조
+
+Harness가 지원하는 **6가지 아키텍처 패턴:**
+
+| 패턴 | 적합한 상황 |
+| --- | --- |
+| Pipeline | 요구사항 분석 → 구현 → 테스트처럼 순서가 중요한 작업 |
+| Fan-out/Fan-in | 여러 관점을 병렬 조사 후 통합하는 작업 |
+| Expert Pool | 필요할 때만 특정 전문가를 호출하는 작업 |
+| Producer-Reviewer | 생성자와 검토자를 분리해야 하는 작업 |
+| Supervisor | 중앙 리더가 상황에 따라 작업을 배분하는 작업 |
+| Hierarchical Delegation | 큰 작업을 하위 작업으로 재귀 분해하는 작업 |
+
+**Phase 0 감사 기능:** 기존 프로젝트에서도 바로 쓸 수 있다. 먼저 `.claude/agents/`, `.claude/skills/`, `CLAUDE.md`를 읽고 현재 상태를 감사한 후 최소 변경안만 제안한다.
+
+## 언제 쓰면 좋은가
+
+**적합한 상황:**
+- 새 프로젝트의 에이전트 팀 초안을 빠르게 잡고 싶을 때
+- 기존 하네스의 중복·누락·트리거 충돌을 점검할 때
+- 리서치, 보안 감사, 대형 리팩토링처럼 역할 분리가 필요한 작업
+- Claude Code Agent Teams 패턴을 실험할 때
+
+**부적합한 상황:**
+- 매일 반복하는 일반 기능 개발 (기존 프레임워크가 더 안정적)
+- 간단한 버그 수정, 작은 UI 개선 (다중 에이전트 오버헤드가 불필요)
+
+## 주의할 점
+
+**토큰 비용:** 여러 에이전트를 설계하면 토큰 사용량이 늘어난다. 원본 스킬은 기본적으로 모든 에이전트에 opus 모델을 권장한다. 첫 세팅 시 비용 제한을 명시하는 것이 좋다.
+
+```text
+비용 제한:
+- 기본 팀은 2~3명 이하
+- 리스크가 큰 작업만 QA/보안 에이전트 분리
+- 추론이 중요한 역할에만 고성능 모델 사용
+```
+
+**기존 하네스 프레임워크와의 관계:** 이미 개인 하네스 프레임워크가 있다면 대체재가 아니라 보강 도구로 쓰는 것이 자연스럽다.
+
+| 역할 | 권장 도구 |
+| --- | --- |
+| 매일 반복하는 기능 개발 | 기존 프레임워크 |
+| 구조 설계·감사·실험 | revfactory/harness |
+
+## 한 문장으로 정리
+
+프로젝트에 맞는 에이전트 팀 구조를 직접 설계하지 않아도 되도록, Claude Code가 스스로 하네스를 설계하게 만드는 메타 스킬이다.
+
+## 참고 링크
+
+- [GitHub — revfactory/harness](https://github.com/revfactory/harness)
