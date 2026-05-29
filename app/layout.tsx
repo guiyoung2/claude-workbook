@@ -12,8 +12,37 @@ const pretendard = localFont({
 });
 
 export const metadata: Metadata = {
-  title: 'Claude Workbook',
-  description: 'Claude Code 학습 정리 사이트',
+  metadataBase: new URL('https://claude-workbook.vercel.app'),
+  title: {
+    default: 'Claude Workbook',
+    template: '%s | Claude Workbook',
+  },
+  description: 'Claude Code를 배우며 정리한 개인 학습 노트입니다.',
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: 'Claude Workbook',
+    description: 'Claude Code를 배우며 정리한 개인 학습 노트입니다.',
+    url: '/',
+    siteName: 'Claude Workbook',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Claude Workbook',
+      },
+    ],
+    locale: 'ko_KR',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Claude Workbook',
+    description: 'Claude Code를 배우며 정리한 개인 학습 노트입니다.',
+    images: ['/og-image.png'],
+  },
 };
 
 export default function RootLayout({
