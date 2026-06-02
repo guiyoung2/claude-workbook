@@ -118,6 +118,17 @@
 - `content/*.mdx` 10개 전부 frontmatter에 `category: Claude` 추가
 - **검증**: `npm run dev` → `/posts`에서 반응형 그리드, 모든 카드에 Claude 배지·인덱스 번호·호버 효과 정상 동작
 
+### 9단계: ✅ 완료 (2026-06-02) — 레퍼런스 페이지 구축
+
+- `content/references/*.mdx` — 구조화 frontmatter (name, url, description, features, tags, comment, date)
+- `lib/references.ts`: `getAllReferences()`, `getReferenceBySlug()` (gray-matter)
+- `components/reference-card.tsx`: 태그 뱃지 + 외부 링크 아이콘 카드
+- `app/references/page.tsx`: 4열 반응형 그리드 목록
+- `app/references/[slug]/page.tsx`: 구조화 상세 페이지 (기능 목록 + 코멘트)
+- `components/site-header.tsx`: "레퍼런스" 네비 링크 추가
+- `.claude/skills/add-reference.md`: URL 분석 → 파일 자동 생성 스킬
+- 첫 레퍼런스: `stitch.mdx` (Google Stitch)
+
 ### 7단계 (선택): 노션 API 참조 스크립트
 
 - `scripts/notion-fetch.ts` (사이트 빌드와 분리)

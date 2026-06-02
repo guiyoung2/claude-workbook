@@ -50,6 +50,12 @@ export function SiteHeader() {
           >
             스킬
           </Link>
+          <Link
+            href="/references"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            레퍼런스
+          </Link>
           <ThemeToggle />
         </nav>
       </div>

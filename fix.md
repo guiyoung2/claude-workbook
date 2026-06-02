@@ -18,6 +18,8 @@
 - 2026-05-09 · 8단계 디자인 개선: 상단 가로 바 → 좌측 세로 주황 바(3px) 교체, 인덱스 번호 제거, 카테고리 배지 주황색 적용, 제목/설명 구분선+타이포 차별화(sm bold / xs relaxed), 다크모드 ring 가시성 개선, 날짜 카드에서 제거
 - 2026-05-26 · 스킬 페이지 글 추가: grill-with-doc-grill-me.mdx(official, source 없음), deep-interview.mdx(custom, source 있음) 작성
 
+- 2026-06-02 · 9단계 완료: 레퍼런스 페이지 신설 (lib/references.ts + components/reference-card.tsx + app/references/ 목록·상세 페이지 + 헤더 네비 추가 + /add-reference 스킬 파일)
+
 ## 버그 수정 이력
 
 - 2026-05-08 · 버그 수정: MDX frontmatter가 본문에 렌더링되는 문제
