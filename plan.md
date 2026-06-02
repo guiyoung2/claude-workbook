@@ -118,6 +118,14 @@
 - `content/*.mdx` 10개 전부 frontmatter에 `category: Claude` 추가
 - **검증**: `npm run dev` → `/posts`에서 반응형 그리드, 모든 카드에 Claude 배지·인덱스 번호·호버 효과 정상 동작
 
+### 10단계: ✅ 완료 (2026-06-02) — 메인 페이지 개편 (애니메이션 + 3섹션 허브)
+
+- `npm install framer-motion`
+- `app/page.tsx`: "최근 글" 섹션 제거, 글/스킬/레퍼런스 3섹션 카드 허브로 재구성
+- Hero: badge → h1 → description stagger 등장 (Framer Motion)
+- 섹션 카드: Hero 완료 후 cascade fadeUp, hover lift + 액센트 바 강화
+- **검증**: `npm run dev` → `/` 에서 순차 등장 애니메이션 + 카드 hover 확인
+
 ### 9단계: ✅ 완료 (2026-06-02) — 레퍼런스 페이지 구축
 
 - `content/references/*.mdx` — 구조화 frontmatter (name, url, description, features, tags, comment, date)

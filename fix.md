@@ -19,6 +19,7 @@
 - 2026-05-26 · 스킬 페이지 글 추가: grill-with-doc-grill-me.mdx(official, source 없음), deep-interview.mdx(custom, source 있음) 작성
 
 - 2026-06-02 · 9단계 완료: 레퍼런스 페이지 신설 (lib/references.ts + components/reference-card.tsx + app/references/ 목록·상세 페이지 + 헤더 네비 추가 + /add-reference 스킬 파일)
+- 2026-06-02 · 10단계 완료: 메인 페이지 개편 — framer-motion 설치, "최근 글" 제거, 글/스킬/레퍼런스 3섹션 카드 허브로 재구성, Hero+카드 stagger 애니메이션 적용
 
 ## 버그 수정 이력
 
