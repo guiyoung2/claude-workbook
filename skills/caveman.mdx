@@ -1,0 +1,99 @@
+---
+title: "Caveman: 에이전트의 장황한 답변을 압축하는 출력 절약 플러그인"
+name: "Caveman"
+description: "코드·명령·오류 메시지는 그대로 유지하면서 설명 문장만 짧은 핵심 문장으로 압축하는 Claude Code 플러그인. 모드, 통계, memory 압축 명령을 함께 제공"
+category: plugin
+github: "https://github.com/JuliusBrussee/caveman"
+installCmd: "claude plugin install caveman@caveman"
+date: 2026-07-16
+---
+
+Caveman은 AI 코딩 에이전트가 코드·명령·오류 메시지는 그대로 유지하면서, 설명 문장을 짧은 핵심 문장으로 압축하도록 만드는 출력 절약 플러그인입니다. 구현량을 줄이는 [Ponytail](/skills/ponytail)과 달리, Caveman은 에이전트가 사용자에게 출력하는 **prose token**을 줄이는 데 집중합니다. Claude Code에는 native plugin과 hook으로, Codex에는 Agent Skills CLI로 배포되며, Gemini CLI extension·OpenCode plugin 등 호스트별 어댑터도 함께 제공합니다.
+
+## 왜 필요한가
+
+"생각을 줄이는 것이 아니라 말하는 양을 줄인다"가 Caveman의 핵심입니다. 에이전트의 긴 서론, 반복되는 확인 문구, 장황한 설명은 코드 품질과 무관하게 대화 가독성을 떨어뜨리고 output token을 소모합니다. Caveman은 filler를 빼고 단문·fragment 중심으로 답하게 하되, 코드·명령·path·URL·오류는 byte-for-byte 그대로 유지하도록 규칙을 겁니다. Claude Code에서는 SessionStart hook이 세션별 활성 상태를 기록해 첫 메시지부터 적용됩니다.
+
+## 설치 방법
+
+### 통합 설치기
+
+macOS, Linux, WSL, Git Bash:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/JuliusBrussee/caveman/main/install.sh | bash
+```
+
+Windows PowerShell 5.1 이상:
+
+```powershell
+irm https://raw.githubusercontent.com/JuliusBrussee/caveman/main/install.ps1 | iex
+```
+
+통합 설치기는 지원 에이전트를 탐지해 각 호스트의 native 경로(plugin, extension, rule file, `npx skills add`)를 실행합니다. Node.js 18 이상이 필요하며 재실행해도 안전하다고 문서화돼 있습니다. 원격 스크립트를 바로 pipe하고 싶지 않다면 `curl ... -o install.sh`로 내려받아 검토한 뒤 실행하거나, 내용만 출력하는 `--dry-run`을 쓸 수 있습니다.
+
+### Claude Code: native plugin
+
+```bash
+claude plugin marketplace add JuliusBrussee/caveman
+claude plugin install caveman@caveman
+```
+
+기본 통합 설치는 Claude Code hook을 함께 켜며, 원하면 `--no-hooks`로 끌 수 있습니다. hook이 새 세션부터 자동 활성 상태를 적용하므로, 설치 직후에는 Claude Code를 다시 시작해야 합니다.
+
+### Codex CLI: skills CLI
+
+```bash
+npx skills add JuliusBrussee/caveman -a codex
+```
+
+공식 install 표는 Codex를 이 명령으로 안내하며, 세션마다 `/caveman` 또는 "talk like caveman" 같은 자연어 트리거로 활성화한다고 설명합니다. README의 자동 활성화 설명과 설치표의 per-session 설명이 다소 엇갈리므로, Codex에서는 `/caveman`으로 직접 상태를 확인하는 편이 안전합니다.
+
+## 모드와 명령
+
+`/caveman <level>`로 모드를 바꾸며 세션이 끝날 때까지 유지됩니다.
+
+| 모드 | 설명 |
+| --- | --- |
+| `lite` | 읽기 쉬운 짧은 문장으로 줄인다. |
+| `full` | 기본 모드. 핵심만 남긴 caveman style을 적용한다. |
+| `ultra` | 가장 강하게 압축한다. |
+| `wenyan` | 고전 중국어로 출력해 토큰 밀도를 더 높이는 특수 모드다. |
+
+원래 사용자의 언어는 유지하며, `wenyan`만 의도적인 예외입니다.
+
+| 명령 | 역할 |
+| --- | --- |
+| `/caveman` | 모드를 켜고 `lite`, `full`, `ultra`, `wenyan` 중 강도를 선택한다. |
+| `/caveman-commit` | 50자 이하 subject와 이유 중심의 Conventional Commit 메시지를 만든다. |
+| `/caveman-review` | 한 줄 형식의 PR review comment를 만든다. |
+| `/caveman-stats` | 현재 세션 token 사용량과 누적 절감 추정치를 보여 준다. |
+| `/caveman-compress <file>` | memory/instruction file을 caveman style로 다시 써 input token을 줄인다. |
+| `caveman-shrink` | MCP server의 tool description을 압축하는 opt-in middleware다. |
+| `cavecrew-*` | investigator, builder, reviewer 역할의 압축형 subagent 구성이다. |
+
+## 측정 수치 읽는 법
+
+README는 Claude API로 측정한 10개 prompt에서 평균 **출력 토큰** 65% 절감(22~87% 범위)을 제시합니다. 다만 스킬 자체가 매 turn 약 1~1.5k input token을 추가하며, input·reasoning token은 줄이지 않습니다. 따라서 이미 짧은 작업에서는 전체 세션 token이나 비용이 오히려 늘 수 있습니다. "항상 65% 저렴하다"가 아니라 "verbose output을 압축한 벤치마크의 평균 출력 토큰 절감"으로 읽는 게 정확합니다. `/caveman-compress`가 제시하는 memory file input token 약 46% 절감 수치도 해당 파일 묶음의 측정 결과이지 모든 instruction file에 대한 보장은 아닙니다.
+
+## 언제 쓰면 좋은가
+
+- 에이전트의 긴 서론, 확인 문구, 반복 설명 때문에 대화 가독성이 떨어질 때
+- 코드·명령은 그대로 두고 보고 문장만 짧게 받고 싶을 때
+- 장기 세션에서 `CLAUDE.md` 같은 프로젝트 메모가 커져 input context 비용이 부담될 때
+- [Ponytail](/skills/ponytail)처럼 구현 최소화 플러그인과 함께, 구현량과 대화량을 각각 줄이고 싶을 때
+
+## 주의할 점
+
+설계 논의, 교육, 법률·의료·보안 설명처럼 충분한 맥락이 필요한 작업에는 `ultra`가 정보를 지나치게 생략할 수 있습니다. 짧은 문체가 항상 읽기 쉬운 문체는 아니므로, 팀의 언어·onboarding·의사결정 기록에는 적절한 모드를 선택해야 합니다. `caveman-shrink`는 기본 설치 항목이 아니라 upstream MCP command를 받는 opt-in proxy입니다. local-first를 표방해 설치 후 telemetry·analytics·backend 호출은 없다고 설명하지만, 설치 과정에서는 GitHub·agent registry·npm 등 호스트별 registry 요청이 발생합니다.
+
+## 한 문장으로 정리
+
+Caveman은 코드나 reasoning을 축소하는 도구가 아니라, 답변의 prose만 압축해 에이전트와의 대화 마찰을 줄이는 communication layer입니다.
+
+## 참고 링크
+
+- [JuliusBrussee/caveman 원본 저장소](https://github.com/JuliusBrussee/caveman)
+- [설치 매트릭스 (INSTALL.md)](https://github.com/JuliusBrussee/caveman/blob/main/INSTALL.md)
+- [Claude Code plugin manifest](https://github.com/JuliusBrussee/caveman/blob/main/.claude-plugin/plugin.json)
+- [skills 디렉터리](https://github.com/JuliusBrussee/caveman/tree/main/skills)

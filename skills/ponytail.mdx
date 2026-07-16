@@ -1,0 +1,107 @@
+---
+title: "Ponytail: AI 코딩 에이전트의 과잉 구현을 막는 최소화 플러그인"
+name: "Ponytail"
+description: "판단 사다리로 새 코드를 쓰기 전에 재사용 가능한 해결책부터 찾게 하고, review·audit·debt 명령으로 과잉 구현을 관리하는 멀티 에이전트 플러그인"
+category: plugin
+github: "https://github.com/DietrichGebert/ponytail"
+installCmd: "/plugin install ponytail@ponytail"
+date: 2026-07-16
+---
+
+AI 코딩 에이전트는 빠르게 결과를 내기 위해 새 라이브러리, wrapper, boilerplate를 쉽게 추가합니다. `Ponytail`은 코드를 쓰기 전에 "이미 있는 더 단순한 해결책"부터 찾도록 순서를 강제하는 멀티 에이전트 플러그인입니다. Claude Code와 Codex 양쪽에 플러그인 manifest와 lifecycle hook을 제공하며, 플러그인 설치를 지원하지 않는 호스트에서는 `AGENTS.md`와 IDE rules 파일로도 쓸 수 있습니다.
+
+## 왜 필요한가
+
+Ponytail이 겨냥하는 문제는 "AI가 짠 코드가 항상 필요 이상으로 크다"는 점입니다. 새 함수, 새 의존성, 새 추상화를 먼저 만들고 나서야 기존 코드에 이미 같은 기능이 있었다는 사실이 드러나는 경우가 흔합니다. Ponytail은 이 순서를 뒤집어, 코드를 쓰기 전에 재사용 가능한 선택지부터 확인하게 만듭니다.
+
+## 핵심 원칙: 해결책 판단 사다리
+
+Ponytail은 아래 순서에서 처음으로 성립하는 선택지를 사용하도록 지시합니다.
+
+1. 이 기능은 정말 필요한가? 필요 없다면 만들지 않는다 (YAGNI).
+2. 코드베이스에 이미 있는가? helper, util, 기존 패턴을 재사용한다.
+3. 표준 라이브러리가 제공하는가? 새 코드를 쓰지 않고 사용한다.
+4. 플랫폼의 네이티브 기능이 해결하는가? 네이티브 기능을 사용한다.
+5. 이미 설치된 의존성이 해결하는가? 새 의존성을 추가하지 않는다.
+6. 한 줄로 가능한가? 한 줄로 작성한다.
+7. 그때만 동작하는 최소 구현을 작성한다.
+
+이 사다리는 문제를 이해하는 일을 대체하지 않습니다. 변경할 코드를 읽고 실제 흐름과 모든 호출자를 추적한 뒤에 적용하며, 버그는 증상이 아니라 근본 원인을 고치도록 합니다.
+
+### 최소화하지 않는 것
+
+`lazy`는 부주의하다는 뜻이 아닙니다. 다음은 코드량을 줄이기 위해 생략 대상에서 제외됩니다.
+
+- 신뢰 경계의 입력 검증
+- 데이터 손실을 막는 오류 처리
+- 보안, 접근성
+- 실제 하드웨어 보정처럼 정확성에 필요한 작업
+- 사용자가 명시적으로 요청한 요구사항
+
+사소하지 않은 로직에는 깨지면 실패하는 가장 작은 실행 가능한 검증(assert 기반 self-check 또는 작은 테스트 파일)을 남깁니다.
+
+## 설치 방법
+
+### Claude Code
+
+아래 두 명령을 **각각 별도 프롬프트**로 전송합니다.
+
+```text
+/plugin marketplace add DietrichGebert/ponytail
+```
+
+```text
+/plugin install ponytail@ponytail
+```
+
+Claude Code Desktop App의 Code 탭에서도 같은 명령을 입력하거나, 플러그인 메뉴에서 marketplace를 추가해 설치할 수 있습니다.
+
+### Codex
+
+```bash
+codex plugin marketplace add DietrichGebert/ponytail
+codex plugin add ponytail@ponytail
+```
+
+설치 후 Codex를 실행해 `/hooks`에서 Ponytail의 lifecycle hook 두 개를 검토하고 신뢰한 다음 새 스레드를 시작합니다. Desktop App은 설치 후 재시작해야 플러그인을 인식합니다.
+
+### hook과 Node.js 요구사항
+
+두 호스트의 플러그인 모두 작은 Node.js lifecycle hook을 실행하므로, Node.js가 **비대화형 셸의 `PATH`**에도 있어야 합니다. nvm이나 Nix 환경에서는 대화형 터미널에서만 `node`가 보이는 경우가 있으니 특히 확인이 필요합니다. Node.js를 찾지 못해도 번들 스킬 자체는 쓸 수 있지만, 매 세션 자동 모드 활성화와 규칙 주입은 조용히 비활성화됩니다.
+
+## 주요 기능
+
+`skills/` 디렉터리에는 여섯 가지 스킬/명령이 있습니다. Codex에서는 `@ponytail-review`처럼 스킬로, Claude Code에서는 `/ponytail-review`처럼 slash command로 호출합니다.
+
+| 스킬/명령 | 목적 |
+| --- | --- |
+| `ponytail` | `lite`, `full`, `ultra`, `off` 모드를 바꾸거나 현재 모드를 확인한다. |
+| `ponytail-review` | 현재 Git diff에서 과도한 구현을 찾아 삭제·단순화 후보 목록을 만든다. |
+| `ponytail-audit` | 현재 diff가 아니라 저장소 전체를 대상으로 과도한 구현을 점검한다. |
+| `ponytail-debt` | 나중에 개선하기로 남긴 `ponytail:` 주석을 ledger로 모아 관리한다. |
+| `ponytail-gain` | 벤치마크에서 측정한 코드량·비용·속도 영향을 보여 준다. |
+| `ponytail-help` | 모드와 명령의 빠른 참조를 제공한다. |
+
+기본 모드는 `full`입니다. 새 세션의 기본 모드는 `PONYTAIL_DEFAULT_MODE` 환경 변수 또는 `~/.config/ponytail/config.json`의 `defaultMode`로 바꿀 수 있습니다.
+
+## 언제 쓰면 좋은가
+
+- 에이전트가 새 패키지, wrapper, boilerplate를 쉽게 추가하는 프로젝트
+- 브라우저나 런타임 네이티브 기능으로 충분한 일을 복잡한 UI 컴포넌트로 만드는 경우
+- 작은 diff와 낮은 유지보수 비용을 중요하게 보는 팀
+- 구현 후 `ponytail-review`로 불필요한 코드를 삭제·축소하고 싶은 경우
+
+## 주의할 점
+
+요구사항 자체가 복잡하거나 안전성·접근성·검증이 중요한 경우, 단순히 코드 줄 수만 줄이는 방식으로 쓰면 안 됩니다. 기존 패턴을 이해하지 않은 "가장 작은 변경"은 잘못된 위치의 두 번째 버그가 될 수 있습니다. 의도적으로 한계를 남기는 단순화(예: global lock, O(n²) scan, naive heuristic)는 `ponytail:` 주석으로 한계와 향후 개선 경로를 남기도록 설계돼 있습니다. 원 저장소가 제시하는 절감률은 특정 모델과 과제를 대상으로 한 벤치마크 수치이며, 일반적인 절감 보장으로 확대 해석하지 않아야 합니다.
+
+## 한 문장으로 정리
+
+Ponytail은 "짧은 코드"를 강요하는 대신, 이미 존재하는 더 단순한 해결책을 먼저 찾도록 순서를 강제하는 플러그인입니다.
+
+## 참고 링크
+
+- [DietrichGebert/ponytail 원본 저장소](https://github.com/DietrichGebert/ponytail)
+- [Korean README](https://github.com/DietrichGebert/ponytail/blob/main/README.ko.md)
+- [핵심 instruction 원문 (AGENTS.md)](https://raw.githubusercontent.com/DietrichGebert/ponytail/main/AGENTS.md)
+- [번들 스킬 디렉터리](https://github.com/DietrichGebert/ponytail/tree/main/skills)
