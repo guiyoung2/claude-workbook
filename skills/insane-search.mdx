@@ -1,0 +1,84 @@
+---
+title: "insane-search: 막힌 공개 페이지를 단계적으로 뚫어 읽는 리서치 플러그인"
+name: "insane-search"
+description: "403·WAF·JS 렌더링 때문에 일반 fetch가 실패하는 공개 페이지를, public API·feed·TLS impersonation·headless browser 순으로 단계적으로 시도해 읽어오는 Claude Code 플러그인"
+category: plugin
+github: "https://github.com/fivetaku/insane-search"
+installCmd: "/plugin install insane-search@gptaku-plugins"
+date: 2026-07-23
+---
+
+insane-search는 공개적으로 접근 가능한 페이지가 일반 fetch에서 막혔을 때, public API·feed·RSS·reader·TLS impersonation·headless browser 경로를 비용과 침습성이 낮은 순서로 시도해 공개 콘텐츠를 읽어오는 에이전트 플러그인입니다. 로그인이나 paywall을 우회하는 인증 우회 도구가 아니며, 인증이 필요한 순간에는 멈추고 사용자에게 알리도록 설계돼 있습니다. Claude Code에는 원본 `insane-search`가, Codex에는 같은 GPTaku 생태계에서 별도로 packaging한 `insane-search-codex`가 있습니다.
+
+## 왜 필요한가
+
+"웹 검색이 가능하다"와 "특정 공개 페이지를 안정적으로 읽을 수 있다"는 다른 문제입니다. 403 응답, WAF 차단, 빈 페이지, JavaScript 렌더링, 플랫폼별로 제각각인 API 형태는 에이전트의 조사 흐름을 자주 끊습니다. insane-search는 한 가지 scraper를 강제하는 대신, 플랫폼별 공개 endpoint부터 browser 기반 public response까지 단계적으로 시도해 이 문제를 완화합니다. 성공 기준은 로그인 보호를 뚫는 것이 아니라, 공개적으로 이용 가능한 정보를 올바른 공개 경로로 읽는 것입니다.
+
+## 설치 방법
+
+### Claude Code
+
+```text
+/plugin marketplace add https://github.com/fivetaku/gptaku_plugins.git
+/plugin install insane-search@gptaku-plugins
+/reload-plugins
+```
+
+설치 후 별도 slash command를 외울 필요는 없습니다. 일반적인 조사 요청에서 URL fetch가 막히거나 특수 플랫폼 처리가 필요할 때 자동으로 활성화됩니다.
+
+### Codex
+
+```bash
+codex plugin marketplace add https://github.com/fivetaku/gptaku-plugins-codex.git
+```
+
+Codex를 재시작한 뒤 `/plugins`에서 `GPTaku Codex` marketplace의 `insane-search-codex`를 설치합니다. 이후 새 세션에서 "막힌 페이지를 가져와 요약해줘"처럼 자연어로 요청하면 됩니다. marketplace 갱신은 다음 명령을 사용합니다.
+
+```bash
+codex plugin marketplace upgrade gptaku-codex
+```
+
+Claude Code 원본과 Codex 대응판은 같은 목표를 공유하지만 별도로 packaging된 플러그인입니다. Codex판이 Claude Code 원본의 TLS impersonation·자동 의존성 설치·headless browser scheduler를 동일하게 제공한다고 단정해서는 안 됩니다.
+
+## 설치하면 무엇이 달라지나
+
+설치 전에는 fetch가 403이나 빈 페이지를 반환하면 에이전트가 그대로 조사를 포기하거나, 사용자가 직접 대체 URL을 찾아줘야 합니다. 설치 후에는 이런 실패가 발생했을 때 에이전트가 플랫폼별 공개 API, RSS/feed, TLS impersonation, headless browser 순으로 자동으로 대체 경로를 시도하고, 그마저 모두 로그인·paywall에 막히면 "authentication required"로 명확히 멈춰서 보고합니다.
+
+## Phase 0→3 접근 사다리
+
+각 단계는 이전 단계가 실패하거나 차단 신호를 발견했을 때만 실행됩니다.
+
+| 단계 | 내용 |
+| --- | --- |
+| Phase 0 | 플랫폼별 special public endpoint (공개 API, feed) |
+| Phase 1 | lightweight probe (공개 API reader, syndication gateway, mobile·`.json`·`/rss` 변형 URL) |
+| Phase 2 | `curl_cffi`로 Safari·Chrome·Firefox TLS fingerprint를 흉내 내는 TLS impersonation |
+| Phase 3 | headless browser로 실제 public response와 사이트 내부 public JSON 관찰 |
+| Exit | login 또는 paywall 감지 시 인증 필요 보고 후 중단 |
+
+응답이 완전하지 않아도 OGP, JSON-LD, Schema.org, Next.js RSC payload 등에서 title, summary, price 같은 공개 metadata를 추출합니다.
+
+지원 플랫폼으로는 X oEmbed·syndication, Reddit RSS, Hacker News Firebase·Algolia, Bluesky/Mastodon public API, Stack Exchange API, arXiv/CrossRef, GitHub API, npm/PyPI registry, Wayback 등이 있습니다. 미디어는 `yt-dlp`를 통해 YouTube, Vimeo, Twitch, TikTok, SoundCloud 등 1,800개 이상 사이트의 metadata와 caption을 시도합니다. `curl_cffi`, `feedparser`, `yt-dlp` 같은 Python 의존성은 필요할 때 첫 사용 시 자동 설치됩니다. 선택적으로 GitHub 접근을 위한 `gh`, JavaScript 렌더링 페이지를 위한 Playwright MCP도 활용할 수 있습니다.
+
+## 언제 쓰면 좋은가
+
+- 403, WAF, 빈 페이지, robots-like 차단으로 일반 fetch가 공개 글을 읽지 못할 때
+- Reddit, X, Hacker News, arXiv, YouTube 등 특정 플랫폼의 공개 콘텐츠·metadata를 조사할 때
+- 공개 RSS·JSON·oEmbed·structured data가 있지만 기본 에이전트가 이를 찾지 못할 때
+- 페이지 전문 대신 공개 title, summary, price, caption, article metadata만으로 답할 수 있을 때
+
+## 주의할 점
+
+로그인이 필요한 계정 콘텐츠, 유료 구독·결제 뒤 콘텐츠, private API에는 맞지 않습니다. 소유자나 권한자의 명시적 허가 없이 접근 통제를 우회하려는 용도로 쓰면 안 되며, 대규모 수집에는 별도로 웹사이트 이용약관과 robots policy 검토가 필요합니다. "모든 페이지를 읽는다"는 과장이며, 원본도 login·paywall에서 멈추고 플랫폼 정책·지역·변경된 endpoint에 따라 동작 여부가 달라질 수 있습니다. 콘텐츠를 인용·재배포할 때도 원문 저작권과 attribution 요구사항은 별도로 확인해야 합니다.
+
+## 한 문장으로 정리
+
+insane-search는 인증을 우회하는 도구가 아니라, 차단된 공개 콘텐츠를 public route부터 순차적으로 찾아 안전하게 읽어오는 리서치 플러그인입니다.
+
+## 참고 링크
+
+- [fivetaku/insane-search 원본 저장소](https://github.com/fivetaku/insane-search)
+- [Korean README](https://github.com/fivetaku/insane-search/blob/main/README.ko.md)
+- [PLATFORMS.md](https://github.com/fivetaku/insane-search/blob/main/PLATFORMS.md)
+- [DISCLAIMER.md](https://github.com/fivetaku/insane-search/blob/main/DISCLAIMER.md)
+- [fivetaku/gptaku-plugins-codex (insane-search-codex)](https://github.com/fivetaku/gptaku-plugins-codex/tree/main/plugins/insane-search-codex)
